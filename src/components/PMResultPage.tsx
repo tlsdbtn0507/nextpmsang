@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { UserInfo, SajuResponse } from '@/types/saju';
-import { DAY_STEM_ANALYSIS, ELEMENT_TRAITS, ELEMENT_ANALYSIS, convertHangulToHanja } from '@/types/sajuConstants';
+import { DAY_STEM_ANALYSIS, ELEMENT_TRAITS, ELEMENT_ANALYSIS, DAY_STEM_DETAILED_ANALYSIS, convertHangulToHanja } from '@/types/sajuConstants';
 
 interface PMResultPageProps {
   userInfo: UserInfo;
@@ -22,6 +22,7 @@ export default function PMResultPage({
   onPMBootcampApply 
 }: PMResultPageProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showDayStemText, setShowDayStemText] = useState(false);
 
   // 사주 정보를 콘솔에 출력
   console.log('=== 사주 정보 ===');
@@ -116,31 +117,47 @@ export default function PMResultPage({
   // 사용자의 주요 성향 6개 가져오기
   const userTraits = getElementTraits(getMainElement());
 
+  // 오행별 이미지 폴더명 매핑
+  const getElementImageFolder = (element: string): string => {
+    const folderMap: { [key: string]: string } = {
+      '목': 'tree',
+      '화': 'fire',
+      '토': 'earth',
+      '금': 'metal',
+      '수': 'water'
+    };
+    return folderMap[element] || 'earth';
+  };
+
+  const imageFolder = getElementImageFolder(getMainElement());
+
   // 오행별 분석 데이터 반환
   const getElementAnalysis = (element: string) => {
     return ELEMENT_ANALYSIS[element] || {
       elementName: '토(土)',
       elementEmoji: '⛰️',
+      elementCharacter: '⛰️ 토(土): 안정·균형·운영의 에너지',
       analysis: '안정·균형·운영의 에너지를 가진 당신은 실행력과 책임감이 뛰어납니다.',
-      workStyle: '체계적 절차를 중시하는 환경에서 안정적인 성장을 추구합니다.',
+      workStyle: [
+        '체계적 절차를 중시하는 환경에서 안정적인 성장을 추구합니다.'
+      ],
       summary: '당신은 팀의 중심을 잡는 \'균형형 PM\'입니다.'
     };
   };
 
   // 일주 분석 데이터 반환
   const getDayStemAnalysis = (dayStem: string, dayBranch: string) => {
-    const hangulDayStemKey = `${dayStem}${dayBranch}`;
-    const hanjaDayStemKey = convertHangulToHanja(hangulDayStemKey);
+    const dayStemKey = `${dayStem}${dayBranch}`;
     
     console.log('=== 일주 분석 디버깅 ===');
     console.log('일간:', dayStem);
     console.log('일지:', dayBranch);
-    console.log('한글 일주 키:', hangulDayStemKey);
-    console.log('한자 일주 키:', hanjaDayStemKey);
-    console.log('일주 분석 데이터 존재 여부:', !!DAY_STEM_ANALYSIS[hanjaDayStemKey]);
-    console.log('사용 가능한 일주 키들:', Object.keys(DAY_STEM_ANALYSIS).slice(0, 10)); // 처음 10개만 표시
+    console.log('일간+일지 조합:', dayStemKey);
     
-    return DAY_STEM_ANALYSIS[hanjaDayStemKey] || '일간 분석을 통해 당신의 핵심 성향을 파악할 수 있습니다.';
+    // 일간 분석 가져오기
+    const detailedAnalysis = DAY_STEM_DETAILED_ANALYSIS[dayStem] || '';
+    
+    return detailedAnalysis || '일간 분석을 통해 당신의 핵심 성향을 파악할 수 있습니다.';
   };
 
   // 사용자 분석 데이터
@@ -152,18 +169,6 @@ export default function PMResultPage({
 
   return (
     <div className="bg-white min-h-screen">
-      {/* 네비게이션 버튼들 */}
-      <div id="navigation-buttons" className="p-4">
-        <button 
-          id="back-to-chatbot-button"
-          onClick={onBackToChatbot}
-          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 transition-colors"
-        >
-          <span>←</span>
-          챗봇으로 돌아가기
-        </button>
-      </div>
-
       {/* 메인 콘텐츠 카드 */}
       <div id="main-content-card" className="mx-4 bg-white rounded-2xl shadow-lg p-6 mb-4">
         
@@ -276,31 +281,25 @@ export default function PMResultPage({
           </h3>
           <div id='main-characteristics-grid' className="grid grid-cols-3 gap-3">
             {/* 첫 번째 행 */}
-            <div id="char-trait-1" className="bg-pink-50 border border-pink-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[0]?.emoji || '💜'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[0]?.trait || '안정성'}</div>
+            <div id="char-trait-1">
+              <img src={`/images/${imageFolder}/성향1-1.png`} alt={userTraits[0]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
-            <div id="char-trait-2" className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[1]?.emoji || '💬'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[1]?.trait || '신중함'}</div>
+            <div id="char-trait-2">
+              <img src={`/images/${imageFolder}/성향1-2.png`} alt={userTraits[1]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
-            <div id="char-trait-3" className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[2]?.emoji || '📚'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[2]?.trait || '책임감'}</div>
+            <div id="char-trait-3">
+              <img src={`/images/${imageFolder}/성향1-3.png`} alt={userTraits[2]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
             
             {/* 두 번째 행 */}
-            <div id="char-trait-4" className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[3]?.emoji || '⚖️'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[3]?.trait || '균형감각'}</div>
+            <div id="char-trait-4">
+              <img src={`/images/${imageFolder}/성향1-4.png`} alt={userTraits[3]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
-            <div id="char-trait-5" className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[4]?.emoji || '💡'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[4]?.trait || '관리능력'}</div>
+            <div id="char-trait-5">
+              <img src={`/images/${imageFolder}/성향1-5.png`} alt={userTraits[4]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
-            <div id="char-trait-6" className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingTop: '6px', paddingBottom: '6px'}}>
-              <div className="text-2xl mb-1">{userTraits[5]?.emoji || '👥'}</div>
-              <div className="text-[11px] font-medium text-gray-700">{userTraits[5]?.trait || '체계적관리'}</div>
+            <div id="char-trait-6">
+              <img src={`/images/${imageFolder}/성향1-6.png`} alt={userTraits[5]?.trait || '특성'} className="w-full h-auto rounded-lg" />
             </div>
           </div>
         </div>
@@ -314,8 +313,8 @@ export default function PMResultPage({
           {/* 오행 분석 블록들 */}
           <div id="personality-analysis-1" className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">오행</span>
-              <span className="text-sm font-medium text-gray-700">{userAnalysis.elementName} 분석</span>
+              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">기질</span>
+              <span className="text-sm font-medium text-gray-700">{userAnalysis.elementCharacter}</span>
             </div>
             <p className="text-sm text-gray-600">
               {userAnalysis.analysis}
@@ -324,22 +323,45 @@ export default function PMResultPage({
           
           <div id="personality-analysis-2" className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">일주</span>
-              <span className="text-sm font-medium text-gray-700">일주 분석</span>
+              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">일간 분석</span>
+              <button
+                id="day-stem-analysis-tooltip-button"
+                onMouseEnter={() => setShowDayStemText(true)}
+                onMouseLeave={() => setShowDayStemText(false)}
+                className="bg-white border border-gray-200 rounded-full shadow flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 transition-colors cursor-help"
+              >
+                <div className="w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  i
+                </div>
+                {showDayStemText ? (
+                  <span className="text-purple-600 text-sm transition-all duration-300 overflow-hidden whitespace-nowrap max-w-[500px] opacity-100">
+                    일간: '나' 자신을 나타내는 글자
+                  </span>
+                ) : (
+                  <span className="text-purple-600 text-sm transition-all duration-300 opacity-100">
+                    일간이란?
+                  </span>
+                )}
+              </button>
+              <span className="text-sm font-medium text-gray-700"></span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p id="day-stem-analysis-text" className="text-sm text-gray-600">
               {dayStemAnalysis}
             </p>
           </div>
           
           <div id="personality-analysis-3" className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">업무스타일</span>
+              <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">업무 유형</span>
               <span className="text-sm font-medium text-gray-700">잘 맞는 업무 스타일</span>
             </div>
-            <p className="text-sm text-gray-600">
-              {userAnalysis.workStyle}
-            </p>
+            <div className="text-sm text-gray-600">
+              {userAnalysis.workStyle.map((style, index) => (
+                <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                  {style}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
 

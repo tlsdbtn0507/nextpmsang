@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ChatHeader from '@/components/ChatHeader';
 import ChatBubble from '@/components/ChatBubble';
 import InteractiveButtons from '@/components/InteractiveButtons';
 import MessageInput from '@/components/MessageInput';
 import PMDiagnosisForm from '@/components/PMDiagnosisForm';
 import PMResultPage from '@/components/PMResultPage';
+import QuestionnaireTest from '@/components/QuestionnaireTest';
 import LoadingScreen from '@/components/LoadingScreen';
 import { UserInfo } from '@/types/saju';
 
@@ -79,10 +80,31 @@ function getYearElement(year: string): string {
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading'>('welcome');
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading' | 'questionnaire'>('welcome');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [questionnaireResults, setQuestionnaireResults] = useState<number[] | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const messageAreaRef = useRef<HTMLDivElement>(null);
+
+  // 페이지 로드 시 세션스토리지 확인
+  useEffect(() => {
+    const savedResult = sessionStorage.getItem('pmResult');
+    if (savedResult) {
+      try {
+        const parsed = JSON.parse(savedResult);
+        setUserInfo(parsed.userInfo);
+        setAnalysisResult(parsed.sajuData);
+        setCurrentStep('result');
+        console.log('세션스토리지에서 결과 복원됨');
+      } catch (error) {
+        console.error('세션스토리지 복원 실패:', error);
+        sessionStorage.removeItem('pmResult');
+      }
+    }
+    setIsInitialized(true);
+  }, []);
 
   const handleFormSubmit = async (userInfo: UserInfo) => {
     setIsLoading(true);
@@ -117,6 +139,14 @@ export default function Home() {
       
       console.log('API 응답 결과:', result);
       setAnalysisResult(result);
+      
+      // 세션스토리지에 결과 저장
+      const savedData = {
+        userInfo,
+        sajuData: result
+      };
+      sessionStorage.setItem('pmResult', JSON.stringify(savedData));
+      console.log('결과가 세션스토리지에 자동 저장되었습니다');
       
       // 결과 페이지로 전환
       setIsTransitioning(true);
@@ -168,6 +198,9 @@ export default function Home() {
   };
 
   const handleClose = () => {
+    // 세션스토리지 초기화
+    sessionStorage.removeItem('pmResult');
+    
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentStep('welcome');
@@ -181,6 +214,9 @@ export default function Home() {
 
   // 결과 페이지 관련 핸들러들
   const handleBackToChatbot = () => {
+    // 세션스토리지 초기화
+    sessionStorage.removeItem('pmResult');
+    
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentStep('welcome');
@@ -193,6 +229,9 @@ export default function Home() {
   };
 
   const handleDiagnoseAgain = () => {
+    // 세션스토리지 초기화
+    sessionStorage.removeItem('pmResult');
+    
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentStep('test');
@@ -205,7 +244,77 @@ export default function Home() {
 
   const handleQuestionnaireTest = () => {
     console.log('문항 테스트 클릭');
-    // 문항 테스트 로직 구현
+    
+    // 세션스토리지에 현재 결과 저장
+    if (userInfo && analysisResult) {
+      sessionStorage.setItem('pmResult', JSON.stringify({
+        userInfo,
+        sajuData: analysisResult
+      }));
+      console.log('결과가 세션스토리지에 저장되었습니다');
+    }
+    
+    // 스크롤을 최상단으로 부드럽게 이동
+    if (messageAreaRef.current) {
+      messageAreaRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      
+      // 스크롤 완료 후 페이지 전환 (약 500ms 후)
+      setTimeout(() => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentStep('questionnaire');
+          setTimeout(() => {
+            setIsTransitioning(false);
+          }, 50);
+        }, 300);
+      }, 500);
+    } else {
+      // ref가 없는 경우 바로 전환
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep('questionnaire');
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 50);
+      }, 300);
+    }
+  };
+
+  const handleQuestionnaireComplete = (results: number[]) => {
+    console.log('문항 테스트 완료:', results);
+    setQuestionnaireResults(results);
+    
+    // 테스트 결과를 세션스토리지에 저장
+    const pmResultData = sessionStorage.getItem('pmResult');
+    if (pmResultData) {
+      const parsed = JSON.parse(pmResultData);
+      parsed.questionnaireResults = results;
+      sessionStorage.setItem('pmResult', JSON.stringify(parsed));
+      console.log('문항 테스트 결과가 세션스토리지에 저장되었습니다');
+    }
+    
+    // TODO: 종합 결과 페이지로 이동
+    // 지금은 임시로 결과 페이지로 다시 이동
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep('result');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
+  };
+
+  const handleQuestionnaireBack = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep('result');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
   };
 
   const handlePMBootcampApply = () => {
@@ -225,13 +334,15 @@ export default function Home() {
           : 'h-[95vh]'
       }`}>
         {/* 챗봇 헤더 */}
-        <ChatHeader 
-          onClose={currentStep !== 'welcome' ? handleClose : undefined} 
-          isTransitioning={isTransitioning}
-        />
+        {currentStep !== 'questionnaire' && (
+          <ChatHeader 
+            onClose={currentStep !== 'welcome' ? handleClose : undefined} 
+            isTransitioning={isTransitioning}
+          />
+        )}
         
         {/* 챗봇 메시지 영역 */}
-        <div className="flex-1 overflow-y-auto">
+        <div ref={messageAreaRef} className="flex-1 overflow-y-auto">
           {currentStep === 'welcome' && (
             <div className={`p-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
               <ChatBubble 
@@ -275,6 +386,15 @@ export default function Home() {
                 onDiagnoseAgain={handleDiagnoseAgain}
                 onQuestionnaireTest={handleQuestionnaireTest}
                 onPMBootcampApply={handlePMBootcampApply}
+              />
+            </div>
+          )}
+          
+          {currentStep === 'questionnaire' && (
+            <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+              <QuestionnaireTest 
+                onComplete={handleQuestionnaireComplete}
+                onBack={handleQuestionnaireBack}
               />
             </div>
           )}

@@ -19,6 +19,43 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
   });
 
   const [name, setName] = useState('김철수');
+  const [ampm, setAmpm] = useState('오후');
+  const [hour, setHour] = useState('12');
+  const [minute, setMinute] = useState('00');
+
+  // AM/PM과 시간 입력을 결합하여 birthTime 업데이트
+  const updateBirthTime = (newAmpm: string, newHour: string, newMinute: string) => {
+    // 유효성 검사
+    const h = parseInt(newHour);
+    const m = parseInt(newMinute);
+    
+    if (isNaN(h) || h < 1 || h > 12) {
+      alert('시간은 1시부터 12시까지만 입력 가능합니다.');
+      return;
+    }
+    
+    if (isNaN(m) || m < 0 || m > 59) {
+      alert('분은 0분부터 59분까지만 입력 가능합니다.');
+      return;
+    }
+    
+    setAmpm(newAmpm);
+    setHour(newHour);
+    setMinute(newMinute);
+    
+    // 24시간 형식으로 변환
+    let finalHours = h;
+    
+    if (newAmpm === '오전') {
+      if (h === 12) finalHours = 0;
+      else finalHours = h;
+    } else {
+      if (h !== 12) finalHours = h + 12;
+    }
+    
+    const finalTime = `${String(finalHours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    handleInputChange('birthTime', finalTime);
+  };
 
   const handleInputChange = (field: keyof UserInfo, value: string) => {
     setFormData(prev => ({
@@ -101,12 +138,52 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
               태어난 시간
             </div>
           </label>
-          <input
-            type="time"
-            value={formData.birthTime}
-            onChange={(e) => handleInputChange('birthTime', e.target.value)}
-            className="w-full px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
-          />
+          <div className="flex gap-2">
+            {/* 오전/오후 선택 */}
+            <select
+              value={ampm}
+              onChange={(e) => updateBirthTime(e.target.value, hour, minute)}
+              className="w-1/4 px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
+            >
+              <option value="오전">오전</option>
+              <option value="오후">오후</option>
+            </select>
+            {/* 시 입력 */}
+            <input
+              type="number"
+              value={hour}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 12)) {
+                  setHour(value);
+                  updateBirthTime(ampm, value || '1', minute);
+                }
+              }}
+              placeholder="시"
+              min="1"
+              max="12"
+              className="w-1/4 px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
+            />
+            {/* 분 입력 */}
+            <input
+              type="number"
+              value={minute}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                  setMinute(value);
+                  updateBirthTime(ampm, hour, value || '0');
+                }
+              }}
+              placeholder="분"
+              min="0"
+              max="59"
+              className="w-1/4 px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
+            />
+            <span className="w-1/4 px-3 py-2 text-gray-500 flex items-center justify-center text-sm">
+              시
+            </span>
+          </div>
         </div>
 
         {/* 출생지역 */}
