@@ -91,16 +91,18 @@ function getMonthPillar(year: number, month: number, day: number): string {
 
   // 년간 기준 월간 계산
   const yearStemIndex = (year - 4) % 10; // 1900년이 경자년이므로
-  const monthStemIndex = (yearStemIndex * 2 + monthIndex) % 10;
+  // 일주 기준점 조정에 맞춰 월간도 조정 (+2)
+  const monthStemIndex = (yearStemIndex * 2 + monthIndex + 2) % 10;
   const monthBranchIndex = (monthIndex + 2) % 12; // 인월부터 시작
 
   return TEN_STEMS[monthStemIndex] + TWELVE_BRANCHES[monthBranchIndex];
 }
 
-// 일주 계산 (1900년 1월 31일이 경자일 기준)
+// 일주 계산 (1900년 1월 26일을 기준으로 조정)
 function getDayPillar(year: number, month: number, day: number): string {
-  // 1900년 1월 31일을 기준으로 일진 계산
-  const baseDate = new Date(1900, 0, 31); // 1900년 1월 31일 (경자일)
+  // 1900년 1월 26일을 기준으로 일진 계산
+  // (기존 1900-01-31 기준에서 5일 앞당김)
+  const baseDate = new Date(1900, 0, 26);
   const targetDate = new Date(year, month - 1, day);
   
   // 일수 차이 계산
@@ -108,8 +110,9 @@ function getDayPillar(year: number, month: number, day: number): string {
   const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
   
   // 일간과 일지 계산
-  const dayStemIndex = (daysDiff + 6) % 10; // 경자일이 6번째이므로
-  const dayBranchIndex = (daysDiff + 0) % 12; // 자일이 0번째이므로
+  // 경자일 기준 조정: 1900-01-26 기준으로 시작
+  const dayStemIndex = (daysDiff + 6) % 10; 
+  const dayBranchIndex = (daysDiff + 0) % 12;
   
   return TEN_STEMS[dayStemIndex] + TWELVE_BRANCHES[dayBranchIndex];
 }

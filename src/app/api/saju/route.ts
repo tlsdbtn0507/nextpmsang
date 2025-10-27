@@ -12,8 +12,6 @@ export async function POST(request: NextRequest) {
   try {
     const userInfo: UserInfo = await request.json();
     
-    console.log('사용자 정보:', userInfo);
-    
     // 정확한 만세력 계산 (수학적 알고리즘 사용)
     const sajuResult = calculateSaju(
       userInfo.birthDate,
@@ -30,13 +28,8 @@ export async function POST(request: NextRequest) {
       userInfo.address
     );
     
-    console.log('계산된 사주:', sajuResult);
-    console.log('상세 사주 정보:', detailedSaju);
-    
     // 사주 분석
     const analysisResult = analyzeSaju(sajuResult);
-    
-    console.log('분석 결과:', analysisResult);
     
     // GPT-4o mini를 사용한 추가 분석 (선택적)
     const gptPrompt = `
@@ -81,7 +74,7 @@ export async function POST(request: NextRequest) {
 
       gptAnalysis = completion.choices[0]?.message?.content;
     } catch (gptError) {
-      console.warn('GPT 분석 실패, 기본 분석만 사용:', gptError);
+      // GPT 분석 실패 시 기본 분석만 사용
     }
 
     return NextResponse.json({
@@ -99,7 +92,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('사주 분석 API 오류:', error);
     return NextResponse.json(
       {
         status: 'error',

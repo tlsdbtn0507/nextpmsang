@@ -24,31 +24,6 @@ export default function PMResultPage({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showDayStemText, setShowDayStemText] = useState(false);
 
-  // 사주 정보를 콘솔에 출력
-  console.log('=== 사주 정보 ===');
-  console.log('사용자 정보:', userInfo);
-  console.log('사주 데이터:', sajuData);
-  
-  if (sajuData.four_pillars) {
-    console.log('사주팔자 정보:');
-    console.log('- 시(時):', sajuData.four_pillars.hour);
-    console.log('- 일(日):', sajuData.four_pillars.day);
-    console.log('- 월(月):', sajuData.four_pillars.month);
-    console.log('- 연(年):', sajuData.four_pillars.year);
-    
-    // 일주 정보 상세 출력
-    console.log('=== 일주 정보 ===');
-    console.log('일간(천간):', sajuData.four_pillars.day?.stem);
-    console.log('일지(지지):', sajuData.four_pillars.day?.branch);
-    console.log('일간 오행:', sajuData.four_pillars.day?.stem_element);
-    console.log('일지 오행:', sajuData.four_pillars.day?.branch_element);
-    console.log('일주 조합:', `${sajuData.four_pillars.day?.stem}${sajuData.four_pillars.day?.branch}`);
-  }
-
-  if (sajuData.traits) {
-    console.log('오행 특성:', sajuData.traits);
-  }
-
   // 오행에 따른 배경색 반환 (강도 절반)
   const getElementColor = (element: string): string => {
     const colorMap: { [key: string]: string } = {
@@ -147,14 +122,6 @@ export default function PMResultPage({
 
   // 일주 분석 데이터 반환
   const getDayStemAnalysis = (dayStem: string, dayBranch: string) => {
-    const dayStemKey = `${dayStem}${dayBranch}`;
-    
-    console.log('=== 일주 분석 디버깅 ===');
-    console.log('일간:', dayStem);
-    console.log('일지:', dayBranch);
-    console.log('일간+일지 조합:', dayStemKey);
-    
-    // 일간 분석 가져오기
     const detailedAnalysis = DAY_STEM_DETAILED_ANALYSIS[dayStem] || '';
     
     return detailedAnalysis || '일간 분석을 통해 당신의 핵심 성향을 파악할 수 있습니다.';

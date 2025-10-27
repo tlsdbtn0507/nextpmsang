@@ -97,9 +97,7 @@ export default function Home() {
         setUserInfo(parsed.userInfo);
         setAnalysisResult(parsed.sajuData);
         setCurrentStep('result');
-        console.log('세션스토리지에서 결과 복원됨');
       } catch (error) {
-        console.error('세션스토리지 복원 실패:', error);
         sessionStorage.removeItem('pmResult');
       }
     }
@@ -120,8 +118,6 @@ export default function Home() {
     }, 300);
     
     try {
-      console.log('사용자 정보:', userInfo);
-      
       // 실제 API 호출
       const response = await fetch('/api/saju', {
         method: 'POST',
@@ -137,7 +133,6 @@ export default function Home() {
         throw new Error(result.error || 'API 호출에 실패했습니다.');
       }
       
-      console.log('API 응답 결과:', result);
       setAnalysisResult(result);
       
       // 세션스토리지에 결과 저장
@@ -146,7 +141,6 @@ export default function Home() {
         sajuData: result
       };
       sessionStorage.setItem('pmResult', JSON.stringify(savedData));
-      console.log('결과가 세션스토리지에 자동 저장되었습니다');
       
       // 결과 페이지로 전환
       setIsTransitioning(true);
@@ -158,7 +152,6 @@ export default function Home() {
       }, 300);
       
     } catch (error) {
-      console.error('분석 중 오류 발생:', error);
       setAnalysisResult({
         status: 'error',
         error: error instanceof Error ? error.message : '분석 중 오류가 발생했습니다.',
@@ -184,16 +177,14 @@ export default function Home() {
   };
 
   const handlePreview = () => {
-    console.log('미리보기 클릭');
+    // 미리보기 로직
   };
 
   const handleIntroClick = () => {
     // PM 직무 & 과정 소개 로직
-    console.log('PM 직무 & 과정 소개 클릭');
   };
 
   const handleSendMessage = (message: string) => {
-    console.log('사용자 메시지:', message);
     // 여기에 메시지 처리 로직 추가
   };
 
@@ -243,15 +234,12 @@ export default function Home() {
   };
 
   const handleQuestionnaireTest = () => {
-    console.log('문항 테스트 클릭');
-    
     // 세션스토리지에 현재 결과 저장
     if (userInfo && analysisResult) {
       sessionStorage.setItem('pmResult', JSON.stringify({
         userInfo,
         sajuData: analysisResult
       }));
-      console.log('결과가 세션스토리지에 저장되었습니다');
     }
     
     // 스크롤을 최상단으로 부드럽게 이동
@@ -284,7 +272,6 @@ export default function Home() {
   };
 
   const handleQuestionnaireComplete = (results: number[]) => {
-    console.log('문항 테스트 완료:', results);
     setQuestionnaireResults(results);
     
     // 테스트 결과를 세션스토리지에 저장
@@ -293,7 +280,6 @@ export default function Home() {
       const parsed = JSON.parse(pmResultData);
       parsed.questionnaireResults = results;
       sessionStorage.setItem('pmResult', JSON.stringify(parsed));
-      console.log('문항 테스트 결과가 세션스토리지에 저장되었습니다');
     }
     
     // TODO: 종합 결과 페이지로 이동
@@ -318,7 +304,6 @@ export default function Home() {
   };
 
   const handlePMBootcampApply = () => {
-    console.log('PM 부트캠프 신청 클릭');
     // PM 부트캠프 신청 로직 구현
   };
 
