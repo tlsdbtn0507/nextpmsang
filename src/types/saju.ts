@@ -4,21 +4,18 @@ export interface UserInfo {
   birthDate: string; // YYYY-MM-DD 형식
   birthTime: string; // HH:MM 형식
   gender: '남' | '여';
-  address: string; // 주소
 }
 
 export interface SajuRequest {
   birth_date: string;
   birth_time: string;
   gender: string;
-  birth_place: string;
 }
 
 export interface SajuResponse {
   status: 'success' | 'error';
   birth_date?: string;
   gender?: string;
-  birth_place?: string;
   five_element?: string;
   day_stem?: string;
   day_branch?: string;

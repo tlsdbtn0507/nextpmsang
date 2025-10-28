@@ -165,18 +165,6 @@ export default function FinalResultPage({
       <div 
         id="hero-section" 
         className="text-center py-0 mx-auto w-[90%]"
-        style={{
-          backgroundImage: 'url(/images/imgBg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          borderRadius: '16px',
-          paddingTop: 0,
-          paddingBottom: 0,
-          paddingLeft: '2rem',
-          paddingRight: '2rem',
-          opacity: 0.8
-        }}
       >
         <div id="hero-circle" className="mx-auto flex items-center justify-center relative z-10">
           <img 
@@ -288,8 +276,10 @@ export default function FinalResultPage({
           <div id="comprehensive-interpretation-header" className="text-sm font-bold mb-1 flex items-center gap-2" style={{ color: '#6B21A8' }}>
             <span id="comprehensive-interpretation-icon">ℹ️</span> 종합 풀이
             <InfoTooltip 
-              infoText="AI를 이용해 기질과 유형을 분석한 풀이입니다."
-              buttonText="종합 풀이란?"
+              tooltip="AI를 이용해 기질과 유형을 분석한 풀이입니다."
+              label="종합 풀이란?"
+              colorClass="text-purple-600"
+              placement="top"
             />
           </div>
           <div id="comprehensive-interpretation-content" className="text-sm font-bold text-gray-600">
@@ -336,7 +326,7 @@ export default function FinalResultPage({
         <div id="recommended-types-list" className="space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-2">
           <div 
             id="recommended-type-1" 
-            className="border border-rec-border rounded-lg p-2"
+            className="rounded-lg p-2"
             style={{ backgroundColor: '#DBEAFE' }}
           >
             <div id="recommended-type-1-name" className="text-sm font-bold mb-1" style={{ color: '#1E40AF' }}>운영 PM</div>
@@ -344,7 +334,7 @@ export default function FinalResultPage({
           </div>
           <div 
             id="recommended-type-2" 
-            className="border border-rec-border rounded-lg p-2"
+            className="rounded-lg p-2"
             style={{ backgroundColor: '#DBEAFE' }}
           >
             <div id="recommended-type-2-name" className="text-sm font-bold mb-1" style={{ color: '#1E40AF' }}>성장형 PM</div>
@@ -352,7 +342,7 @@ export default function FinalResultPage({
           </div>
           <div 
             id="recommended-type-3" 
-            className="border border-rec-border rounded-lg p-2"
+            className="rounded-lg p-2"
             style={{ backgroundColor: '#DBEAFE' }}
           >
             <div id="recommended-type-3-name" className="text-sm font-bold mb-1" style={{ color: '#1E40AF' }}>제품 전략형 PM</div>
@@ -370,15 +360,9 @@ export default function FinalResultPage({
           onClick={onPMBootcampApply}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold py-4 px-4 rounded-lg hover:scale-[1.02] hover:shadow-lg transition-all duration-200"
         >
-          PM 부트캠프 바로보기
+          AI 챗봇으로 이동
         </button>
-        <button 
-          id="bootcamp-apply-btn"
-          onClick={onPMBootcampApply}
-          className="w-full bg-white border-2 border-purple-600 text-purple-600 font-semibold py-4 px-4 rounded-lg hover:bg-purple-50 transition-colors"
-        >
-          PM 부트캠프 신청하기
-        </button>
+
       </div>
     </div>
   );

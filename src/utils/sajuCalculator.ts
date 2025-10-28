@@ -217,13 +217,12 @@ function adjustForTimezone(birthTime: string, location: string): string {
 export function calculateSaju(
   birthDate: string, 
   birthTime: string, 
-  gender: string, 
-  location: string
+  gender: string
 ): SajuResult {
   const [year, month, day] = birthDate.split('-').map(Number);
   
-  // 지역시 보정
-  const adjustedTime = adjustForTimezone(birthTime, location);
+  // 지역시 보정 (지역 정보 제거로 보정 없이 원본 시간 사용)
+  const adjustedTime = adjustForTimezone(birthTime, '');
   const [hours, minutes] = adjustedTime.split(':').map(Number);
   
   // 년주 계산
@@ -270,13 +269,12 @@ export function calculateSaju(
 export function getDetailedSajuInfo(
   birthDate: string, 
   birthTime: string, 
-  gender: string, 
-  location: string
+  gender: string
 ) {
   const [year, month, day] = birthDate.split('-').map(Number);
   
-  // 지역시 보정
-  const adjustedTime = adjustForTimezone(birthTime, location);
+  // 지역시 보정 (지역 정보 제거로 보정 없이 원본 시간 사용)
+  const adjustedTime = adjustForTimezone(birthTime, '');
   const [hours, minutes] = adjustedTime.split(':').map(Number);
   
   // 각 기둥의 천간과 지지 계산

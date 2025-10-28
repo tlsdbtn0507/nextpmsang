@@ -14,8 +14,7 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
   const [formData, setFormData] = useState<UserInfo>({
     birthDate: '',
     birthTime: '12:00',
-    gender: '남',
-    address: ''
+    gender: '남'
   });
 
   const [name, setName] = useState('김철수');
@@ -125,6 +124,8 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
             type="date"
             value={formData.birthDate}
             onChange={(e) => handleInputChange('birthDate', e.target.value)}
+            min="1900-01-01"
+            max={new Date().toISOString().split('T')[0]}
             className="w-full px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
             required
           />
@@ -186,20 +187,6 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
           </div>
         </div>
 
-        {/* 출생지역 */}
-        <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            태어난 지역 (선택)
-          </label>
-          <input
-            type="text"
-            value={formData.address}
-            onChange={(e) => handleInputChange('address', e.target.value)}
-            placeholder="예: 서울"
-            className="w-full px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
-          />
-        </div>
-
         {/* 안내 메시지 */}
         <p className="text-xs text-gray-500">
           * 정확한 시간을 모르시면 12:00 (정오)로 설정됩니다
@@ -214,13 +201,6 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
           >
             <span>✨</span>
             사주·PM 리포트 생성
-          </button>
-          <button
-            type="button"
-            onClick={onPreview}
-            className="flex-1 bg-white border-2 border-purple-200 text-gray-700 font-semibold py-3 px-4 rounded-lg hover:border-purple-300 hover:scale-[1.02] hover:bg-purple-50 transition-all duration-200"
-          >
-            미리보기
           </button>
         </div>
       </form>

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { UserInfo } from '@/types/saju';
 import { calculateSaju, analyzeSaju, getDetailedSajuInfo } from '@/utils/sajuCalculator';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 
 export async function POST(request: NextRequest) {
@@ -16,79 +11,27 @@ export async function POST(request: NextRequest) {
     const sajuResult = calculateSaju(
       userInfo.birthDate,
       userInfo.birthTime,
-      userInfo.gender,
-      userInfo.address
+      userInfo.gender
     );
     
     // 사진과 같은 상세 사주 정보 생성
     const detailedSaju = getDetailedSajuInfo(
       userInfo.birthDate,
       userInfo.birthTime,
-      userInfo.gender,
-      userInfo.address
+      userInfo.gender
     );
     
     // 사주 분석
     const analysisResult = analyzeSaju(sajuResult);
-    
-    // GPT-4o mini를 사용한 추가 분석 (선택적)
-    const gptPrompt = `
-다음 사주 정보를 바탕으로 더 상세한 분석을 해주세요.
-
-**계산된 사주 정보:**
-- 년주: ${sajuResult.year}
-- 월주: ${sajuResult.month}
-- 일주: ${sajuResult.day}
-- 시주: ${sajuResult.hour}
-- 일간: ${sajuResult.dayStem}
-- 일지: ${sajuResult.dayBranch}
-- 오행: ${sajuResult.fiveElement}
-- 십신: ${sajuResult.tenGod}
-
-**사용자 정보:**
-- 생년월일: ${userInfo.birthDate}
-- 출생시간: ${userInfo.birthTime}
-- 성별: ${userInfo.gender}
-- 출생지역: ${userInfo.address}
-
-위 사주 정보를 바탕으로 더 상세한 성격 분석과 인생 조언을 제공해주세요.
-`;
-
-    let gptAnalysis = null;
-    try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "당신은 전문적인 사주명리학자입니다. 제공된 정확한 사주 정보를 바탕으로 상세한 분석을 해주세요."
-          },
-          {
-            role: "user",
-            content: gptPrompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 800
-      });
-
-      gptAnalysis = completion.choices[0]?.message?.content;
-    } catch (gptError) {
-      // GPT 분석 실패 시 기본 분석만 사용
-    }
 
     return NextResponse.json({
       status: 'success',
       saju: sajuResult,
       four_pillars: detailedSaju,
-      analysis: {
-        ...analysisResult,
-        gptAnalysis: gptAnalysis
-      },
+      analysis: analysisResult,
       birth_date: userInfo.birthDate,
       birth_time: userInfo.birthTime,
-      gender: userInfo.gender,
-      birth_place: userInfo.address
+      gender: userInfo.gender
     });
 
   } catch (error) {

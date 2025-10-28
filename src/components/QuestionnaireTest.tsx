@@ -202,7 +202,8 @@ export default function QuestionnaireTest({ onComplete, onBack }: QuestionnaireT
                   <span className="text-2xl">+</span>
                   <p className="text-base"><strong>💡</strong> 후천적으로 만들어진 일하는 방식</p>
                   <span className="text-2xl transform rotate-90">=</span>
-                  <p className="font-bold text-purple-600 text-base mt-1">당신만의 PM(프로덕트 매니저) 스타일을 찾아드립니다.</p>
+                  <p className="font-bold text-purple-600 text-base mt-1">
+                    당신만의 PM 스타일을 찾아드립니다.</p>
                 </div>
               </div>
               <p className="text-gray-600 text-sm">

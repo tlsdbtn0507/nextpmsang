@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { UserInfo, SajuResponse } from '@/types/saju';
 import { DAY_STEM_ANALYSIS, ELEMENT_TRAITS, ELEMENT_ANALYSIS, DAY_STEM_DETAILED_ANALYSIS, convertHangulToHanja } from '@/types/sajuConstants';
+import InfoTooltip from './InfoTooltip';
 
 interface PMResultPageProps {
   userInfo: UserInfo;
@@ -155,6 +156,9 @@ export default function PMResultPage({
         {/* 일러스트레이션 섹션 */}
         <div id="illustration-section" className="text-center mb-6">
           <div className="relative inline-block">
+            {/* 그라데이션 배경 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#B4D7FF] via-[#B9FFEE] via-[#FFAAD3] to-[#FFF1B5] rounded-full opacity-30 -z-10"></div>
+            
             {/* 오행 일러스트 */}
             <img 
               src={`/images/saju/${elementIllustration}.png`} 
@@ -185,49 +189,41 @@ export default function PMResultPage({
           <div className="grid grid-cols-4 gap-2">
             {/* 시(時) - Hour */}
             <div id="saju-hour-column" className="text-center">
-              <div id="saju-hour-top" className={`${getElementColor(sajuData.four_pillars?.hour?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.hour?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.hour?.stem_element || '토')} p-2 rounded-lg mb-1`}>
+              <div id="saju-hour-top" className={`${getElementColor(sajuData.four_pillars?.hour?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.hour?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.hour?.stem_element || '토')} p-2 rounded-lg mb-1 min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.hour?.stem || '시간모름'}{sajuData.four_pillars?.hour?.stem ? `(${getElementHanja(sajuData.four_pillars?.hour?.stem_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.hour?.ten_god || 'X'}</div>
               </div>
-              <div id="saju-hour-bottom" className={`${getElementColor(sajuData.four_pillars?.hour?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.hour?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.hour?.branch_element || '토')} p-2 rounded-lg`}>
+              <div id="saju-hour-bottom" className={`${getElementColor(sajuData.four_pillars?.hour?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.hour?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.hour?.branch_element || '토')} p-2 rounded-lg min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.hour?.branch || '시간모름'}{sajuData.four_pillars?.hour?.branch ? `(${getElementHanja(sajuData.four_pillars?.hour?.branch_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.hour?.branch_ten_god || 'X'}</div>
               </div>
             </div>
 
             {/* 일(日) - Day */}
             <div id="saju-day-column" className="text-center">
-              <div id="saju-day-top" className={`${getElementColor(sajuData.four_pillars?.day?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.day?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.day?.stem_element || '토')} p-2 rounded-lg mb-1`}>
+              <div id="saju-day-top" className={`${getElementColor(sajuData.four_pillars?.day?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.day?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.day?.stem_element || '토')} p-2 rounded-lg mb-1 min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.day?.stem || '기'}{sajuData.four_pillars?.day?.stem ? `(${getElementHanja(sajuData.four_pillars?.day?.stem_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.day?.ten_god || '비견'}</div>
               </div>
-              <div id="saju-day-bottom" className={`${getElementColor(sajuData.four_pillars?.day?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.day?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.day?.branch_element || '토')} p-2 rounded-lg`}>
+              <div id="saju-day-bottom" className={`${getElementColor(sajuData.four_pillars?.day?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.day?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.day?.branch_element || '토')} p-2 rounded-lg min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.day?.branch || '유'}{sajuData.four_pillars?.day?.branch ? `(${getElementHanja(sajuData.four_pillars?.day?.branch_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.day?.branch_ten_god || '식신'}</div>
               </div>
             </div>
 
             {/* 월(月) - Month */}
             <div id="saju-month-column" className="text-center">
-              <div id="saju-month-top" className={`${getElementColor(sajuData.four_pillars?.month?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.month?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.month?.stem_element || '토')} p-2 rounded-lg mb-1`}>
+              <div id="saju-month-top" className={`${getElementColor(sajuData.four_pillars?.month?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.month?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.month?.stem_element || '토')} p-2 rounded-lg mb-1 min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.month?.stem || '을'}{sajuData.four_pillars?.month?.stem ? `(${getElementHanja(sajuData.four_pillars?.month?.stem_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.month?.ten_god || '편관'}</div>
               </div>
-              <div id="saju-month-bottom" className={`${getElementColor(sajuData.four_pillars?.month?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.month?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.month?.branch_element || '토')} p-2 rounded-lg`}>
+              <div id="saju-month-bottom" className={`${getElementColor(sajuData.four_pillars?.month?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.month?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.month?.branch_element || '토')} p-2 rounded-lg min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.month?.branch || '사'}{sajuData.four_pillars?.month?.branch ? `(${getElementHanja(sajuData.four_pillars?.month?.branch_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.month?.branch_ten_god || '정인'}</div>
               </div>
             </div>
 
             {/* 연(年) - Year */}
             <div id="saju-year-column" className="text-center">
-              <div id="saju-year-top" className={`${getElementColor(sajuData.four_pillars?.year?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.year?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.year?.stem_element || '토')} p-2 rounded-lg mb-1`}>
+              <div id="saju-year-top" className={`${getElementColor(sajuData.four_pillars?.year?.stem_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.year?.stem_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.year?.stem_element || '토')} p-2 rounded-lg mb-1 min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.year?.stem || '정'}{sajuData.four_pillars?.year?.stem ? `(${getElementHanja(sajuData.four_pillars?.year?.stem_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.year?.ten_god || '편인'}</div>
               </div>
-              <div id="saju-year-bottom" className={`${getElementColor(sajuData.four_pillars?.year?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.year?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.year?.branch_element || '토')} p-2 rounded-lg`}>
+              <div id="saju-year-bottom" className={`${getElementColor(sajuData.four_pillars?.year?.branch_element || '토')} ${getElementBorderColor(sajuData.four_pillars?.year?.branch_element || '토')} border-2 ${getElementTextColor(sajuData.four_pillars?.year?.branch_element || '토')} p-2 rounded-lg min-h-[60px] flex items-center justify-center`}>
                 <div className="font-semibold">{sajuData.four_pillars?.year?.branch || '축'}{sajuData.four_pillars?.year?.branch ? `(${getElementHanja(sajuData.four_pillars?.year?.branch_element || '토')})` : ''}</div>
-                <div className="text-xs">{sajuData.four_pillars?.year?.branch_ten_god || '비견'}</div>
               </div>
             </div>
           </div>
@@ -283,25 +279,12 @@ export default function PMResultPage({
           <div id="personality-analysis-2" className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded">일간 분석</span>
-              <button
-                id="day-stem-analysis-tooltip-button"
-                onMouseEnter={() => setShowDayStemText(true)}
-                onMouseLeave={() => setShowDayStemText(false)}
-                className="bg-white border border-gray-200 rounded-full shadow flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 transition-colors cursor-help"
-              >
-                <div className="w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  i
-                </div>
-                {showDayStemText ? (
-                  <span className="text-purple-600 text-sm transition-all duration-300 overflow-hidden whitespace-nowrap max-w-[500px] opacity-100">
-                    일간: '나' 자신을 나타내는 글자
-                  </span>
-                ) : (
-                  <span className="text-purple-600 text-sm transition-all duration-300 opacity-100">
-                    일간이란?
-                  </span>
-                )}
-              </button>
+              <InfoTooltip 
+                label="일간이란?" 
+                tooltip="일간: '나' 자신을 나타내는 글자" 
+                colorClass="text-purple-600" 
+                placement="top" 
+              />
               <span className="text-sm font-medium text-gray-700"></span>
             </div>
             <p id="day-stem-analysis-text" className="text-sm text-gray-600">
@@ -343,17 +326,7 @@ export default function PMResultPage({
           </p>
         </div>
 
-        {/* 다시 진단하기 버튼 */}
-        <div className="mb-6">
-          <button 
-            id="diagnose-again-button"
-            onClick={onDiagnoseAgain}
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 transition-colors"
-          >
-            <span>←</span>
-            다시 진단하기
-          </button>
-        </div>
+
       </div>
 
       {/* 하단 액션 버튼들 */}
@@ -367,16 +340,7 @@ export default function PMResultPage({
           문항 테스트
         </button>
         
-        <button 
-          id="pm-bootcamp-apply-button"
-          onClick={onPMBootcampApply}
-          className="w-full bg-gray-100 text-gray-700 font-semibold py-4 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
-        >
-          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm">✓</span>
-          </div>
-          PM 부트캠프 신청하기
-        </button>
+
       </div>
     </div>
   );
