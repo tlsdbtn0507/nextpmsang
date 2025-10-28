@@ -12,8 +12,7 @@ export default function UserInfoForm({ onSubmit, isLoading = false }: UserInfoFo
   const [formData, setFormData] = useState<UserInfo>({
     birthDate: '1997-05-07',
     birthTime: '21:00',
-    gender: '남',
-    address: '서울'
+    gender: '남'
   });
 
   const [errors, setErrors] = useState<Partial<UserInfo>>({});
@@ -46,10 +45,6 @@ export default function UserInfoForm({ onSubmit, isLoading = false }: UserInfoFo
 
     if (!formData.gender) {
       newErrors.gender = '성별을 선택해주세요.' as any;
-    }
-
-    if (!formData.address.trim()) {
-      newErrors.address = '주소를 입력해주세요.';
     }
 
     setErrors(newErrors);
@@ -150,27 +145,6 @@ export default function UserInfoForm({ onSubmit, isLoading = false }: UserInfoFo
           </div>
           {errors.gender && (
             <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
-          )}
-        </div>
-
-        {/* 주소 */}
-        <div>
-          <label htmlFor="address" className="block text-sm font-medium text-black mb-2">
-            출생지역
-          </label>
-          <input
-            type="text"
-            id="address"
-            value={formData.address}
-            onChange={(e) => handleInputChange('address', e.target.value)}
-            placeholder="예: 서울, 부산, 경기도 등"
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black ${
-              errors.address ? 'border-red-500' : 'border-gray-300'
-            }`}
-            required
-          />
-          {errors.address && (
-            <p className="mt-1 text-sm text-red-600">{errors.address}</p>
           )}
         </div>
 
