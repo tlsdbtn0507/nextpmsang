@@ -378,6 +378,8 @@ export default function Home() {
           ? 'h-[95vh]'
           : currentStep === 'chat'
           ? 'h-[95vh]'
+          : currentStep === 'questionnaire'
+          ? 'h-[75vh]'
           : 'h-[95vh]'
       }`}>
         {/* 챗봇 헤더 */}
@@ -390,7 +392,10 @@ export default function Home() {
         
         {/* 챗봇 메시지 영역 (chat 단계 제외) */}
         {currentStep !== 'chat' && (
-          <div ref={messageAreaRef} className="flex-1 overflow-y-auto">
+          <div ref={messageAreaRef} 
+          // className="flex-1 overflow-y-auto"
+          className={`${currentStep === 'questionnaire' ? '' : 'flex-1 overflow-y-auto '}`}
+          >
           {currentStep === 'welcome' && (
             <div className={`p-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
               <ChatBubble 

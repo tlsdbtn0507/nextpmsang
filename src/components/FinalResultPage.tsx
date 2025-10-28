@@ -28,10 +28,13 @@ export default function FinalResultPage({
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [aiInterpretation, setAiInterpretation] = useState<string>('');
   const [matchedPersonalityType, setMatchedPersonalityType] = useState<string>('');
+  const [isReady, setIsReady] = useState<boolean>(false);
 
   useEffect(() => {
     const generateFinalAnalysis = async () => {
       try {
+        setIsLoading(true);
+        setIsReady(false);
         // 세션 고정값 확인 (있으면 이를 우선 사용)
         const pmResultRaw = sessionStorage.getItem('pmResult');
         const parsedPmResult = pmResultRaw ? JSON.parse(pmResultRaw) : null;
@@ -46,6 +49,7 @@ export default function FinalResultPage({
           setMatchedPersonalityType(cachedFinal.matchedPersonalityType);
           if (cachedFinal.aiInterpretation) setAiInterpretation(cachedFinal.aiInterpretation);
           setIsLoading(false);
+          setIsReady(true);
           return;
         }
         
@@ -74,19 +78,12 @@ export default function FinalResultPage({
         if (response.ok) {
           const data = await response.json();
           const interpretation = data.interpretation || '';
-          console.log('=== AI 매칭 결과 ===');
-          console.log(interpretation);
-          
           // AI 반환 결과에서 유형 추출
           const personalityMatch = interpretation.match(/리더형|실행형|분석형|공감형|안정형/);
           if (personalityMatch) {
             const matchedType = personalityMatch[0];
             setMatchedPersonalityType(matchedType);
-            console.log('=== 매칭된 성향 데이터 ===');
-            console.log('성향:', matchedType);
-            console.log(PM_PERSONALITY_DATA[matchedType as keyof typeof PM_PERSONALITY_DATA]);
           }
-          
           setAiInterpretation(interpretation);
 
           // 세션에 캐시
@@ -107,15 +104,15 @@ export default function FinalResultPage({
         console.error('분석 중 오류:', error);
       } finally {
         setIsLoading(false);
+        setIsReady(true);
       }
     };
     
     generateFinalAnalysis();
   }, [sajuData, questionnaireResults]);
 
-  // 로딩 중
-  if (!analysisResult) {
-    if (skipLoading) return null;
+  // 로딩 중: AI 응답 또는 캐시 확인 완료 전까지는 무조건 로딩 유지
+  if (!isReady) {
     return (
       <LoadingScreen 
         isVisible={true}
@@ -123,6 +120,11 @@ export default function FinalResultPage({
         subMessage="종합 분석을 준비하고 있습니다"
       />
     );
+  }
+
+  // skipLoading=true 인 경우에도 analysisResult가 준비되지 않았다면 렌더링 보류
+  if (!analysisResult) {
+    return null;
   }
 
   // 주요 성격 유형

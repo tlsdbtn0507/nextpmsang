@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { containsProfanity, scrollToBottom, validateMessageLength } from '@/utils/chatHelpers';
 import { markdownToHtml } from '@/utils/markdownParser';
+import { FAQ_QUESTIONS, FAQ_ANSWERS } from '@/utils/chatFaq';
 
 interface ChatPanelProps {
   onClose?: () => void;
@@ -18,11 +19,23 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const [chatLimit, setChatLimit] = useState<null | number>(null);
+  const [faqBubbles, setFaqBubbles] = useState<{ label: string; answer: string }[]>([]);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottomElement = () => {
     scrollToBottom(bodyRef.current);
   };
+
+  useEffect(() => {
+    const isChatLimit = localStorage.getItem('chatLimit');
+    if (!isChatLimit) {
+      localStorage.setItem('chatLimit', '2');
+      setChatLimit(2);
+    } else {
+      setChatLimit(parseInt(isChatLimit));
+    }
+  }, []);
 
   // 초기 렌더 후 최신 메시지로 스크롤
   useEffect(() => {
@@ -43,36 +56,68 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     scrollToBottomElement();
   }, []);
   
+  //채팅 제한 체크
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottomElement();
     }
   }, [messages.length]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const handleChatLimit = () => {
+    if (chatLimit === null || chatLimit <= 0){
+        localStorage.setItem('chatLimit', '0');
+        setChatLimit(0);
+        return false;
+    } 
+    setChatLimit((prev) => prev ? prev - 1 : 0);
+    localStorage.setItem('chatLimit', chatLimit.toString());
+    return true;
+  };
+
+  const checkIsInputValid = (text: string) => {
+    
     if (!text || isSending) return;
     if (containsProfanity(text)) {
       alert('부적절한 표현이 포함되어 있어 전송할 수 없습니다.');
-      return;
+      return false;
     }
     if (!validateMessageLength(text)) {
       alert('글자수 제한을 지켜주세요!');
+      return false;
+    }
+    return true;
+  }
+
+  const fetchChat = async (messages: { role: 'user' | 'assistant'; content: string }[]) => {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+    const data = await res.json();
+    return data?.content || '죄송해요, 잠시 후 다시 시도해주세요.';
+  }
+
+  const handleMessage = async () => {
+    const text = input.trim();
+
+    if (!handleChatLimit()) {
+      alert('채팅 횟수를 초과했습니다.');
+      return;
+    }
+
+    if (!checkIsInputValid(text)) {
       return;
     }
 
     const next = [...messages, { role: 'user' as const, content: text }];
+
     setMessages(next);
     setInput('');
     setIsSending(true);
+    
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next }),
-      });
-      const data = await res.json();
-      const reply = data?.content || '죄송해요, 잠시 후 다시 시도해주세요.';
+      const reply = await fetchChat(next);
       setMessages((prev) => [...prev, { role: 'assistant' as const, content: reply }]);
       setTimeout(scrollToBottomElement, 100);
     } catch (e) {
@@ -80,6 +125,23 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleFaqBtns = (label: string) => {
+    const answer = FAQ_ANSWERS[label];
+    if (answer) {
+      console.log(`[FAQ] ${label}:`, answer);
+      // generateFaqBubbles(answer, label); // 화면 렌더링은 추후 활성화
+    } else {
+      console.log(`[FAQ] ${label}: 답변이 없습니다.`);
+    }
+  };
+
+  // FAQ 말풍선 생성: 사용자 말풍선(오른쪽) + 답변 블록
+  const generateFaqBubbles = (answer: string, label: string) => {
+    setFaqBubbles((prev) => [...prev, { label, answer }]);
+    // 스크롤 약간 지연 후 하단으로
+    setTimeout(scrollToBottomElement, 50);
   };
 
   return (
@@ -149,16 +211,11 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 
 		{/* 추천 질문 칩들 */}
         <div id="chat-suggested-chips" className="space-y-2" style={{display: 'flex', flexDirection: 'column'}}>
-          {[
-            '🌿 에듀테크 PM이란?',
-            '📍 주요 역할이 궁금해요.',
-            '🧠 필요한 역량이 궁금해요.',
-            '🧩 에듀테크 PM이 주로 다루는 서비스가 궁금해요.',
-            '🎯 에듀테크 PM이 배울 수 있는 점이 궁금해요.',
-          ].map((label, idx) => (
+          {FAQ_QUESTIONS.map((label, idx) => (
             <button
               id={`chat-chip-${idx+1}`}
               key={`chip-${idx}`}
+              onClick={() => handleFaqBtns(label)}
               className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95"
             >
               {label}
@@ -187,6 +244,24 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 			  )}
 			</div>
 		  ))}
+
+		  {/* FAQ로 생성된 말풍선들 (커밋 전 일시 비활성화)
+		  {faqBubbles.map((b, idx) => (
+			<React.Fragment key={`faq-${idx}`}>
+			  <div
+				className="ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words"
+				style={{ backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF' ,color: 'black' }}
+			  >
+				<span className="text-sm whitespace-pre-wrap">{b.label}</span>
+			  </div>
+			  <div className="mr-auto w-fit max-w-[85%] rounded-2xl px-4 py-2 break-words border border-gray-200 bg-white">
+				<div className="text-sm prose prose-sm max-w-none" style={{color: 'black'}}>
+				  {b.answer}
+				</div>
+			  </div>
+			</React.Fragment>
+		  ))}
+		  */}
 		  
 		  {/* 로딩 애니메이션 */}
 		  {isSending && (
@@ -231,11 +306,11 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
                   return;
                 }
                 e.preventDefault();
-                sendMessage();
+                handleMessage();
               }
             }}
           />
-          <button id="chat-send-button" disabled={isSending} onClick={() => { sendMessage(); }} className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center hover:bg-blue-600 disabled:opacity-60" aria-label="전송">
+          <button id="chat-send-button" disabled={isSending} onClick={() => { handleMessage(); }} className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center hover:bg-blue-600 disabled:opacity-60" aria-label="전송">
             <svg id="chat-send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-5 h-5">
               <path id="chat-send-path-1" d="M22 2L11 13"/>
               <path id="chat-send-path-2" d="M22 2L15 22L11 13L2 9L22 2Z"/>
