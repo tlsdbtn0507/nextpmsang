@@ -113,7 +113,7 @@ describe('기유 원인 조사 - 만세력과 출생지 정밀도', () => {
     }> = [];
 
     seoulLocations.forEach(loc => {
-      const sajuResult = calculateSaju(birthDate, birthTime, gender, loc.location);
+      const sajuResult = calculateSaju(birthDate, birthTime, gender);
       const isGiyu = sajuResult.day === '기유';
       const marker = isGiyu ? '🎯' : '  ';
       
@@ -171,7 +171,7 @@ describe('기유 원인 조사 - 만세력과 출생지 정밀도', () => {
     }> = [];
 
     testTimes.forEach(time => {
-      const sajuResult = calculateSaju(birthDate, time, gender, location);
+      const sajuResult = calculateSaju(birthDate, time, gender);
       const isGiyu = sajuResult.day === '기유';
       const marker = isGiyu ? '🎯' : '  ';
       
@@ -227,7 +227,7 @@ describe('기유 원인 조사 - 만세력과 출생지 정밀도', () => {
       const adjustedMinutes = totalMinutes % 60;
       const adjustedTime = `${adjustedHours.toString().padStart(2, '0')}:${adjustedMinutes.toString().padStart(2, '0')}`;
       
-      const sajuResult = calculateSaju(birthDate, adjustedTime, gender, '서울');
+      const sajuResult = calculateSaju(birthDate, adjustedTime, gender);
       const isGiyu = sajuResult.day === '기유';
       const marker = isGiyu ? '🎯' : '  ';
       
@@ -299,7 +299,7 @@ describe('기유 원인 조사 - 만세력과 출생지 정밀도', () => {
     const gender = '남';
 
     // 1. 현재 알고리즘 결과
-    const currentResult = calculateSaju(targetDate, targetTime, gender, '서울');
+    const currentResult = calculateSaju(targetDate, targetTime, gender);
     console.log(`1. 현재 알고리즘 결과: ${currentResult.day} (갑진)`);
     
     // 2. 기유가 나오는 조건들 요약

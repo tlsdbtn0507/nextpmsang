@@ -57,7 +57,7 @@ describe('지역 시차 보정 조사 - 전문 사이트 기준', () => {
 
     timezoneAdjustments.forEach(adj => {
       const adjustedTime = adjustTimeForTimezone(birthTime, adj.adjustment);
-      const sajuResult = calculateSaju(birthDate, adjustedTime, gender, '서울');
+      const sajuResult = calculateSaju(birthDate, adjustedTime, gender);
       const isGiyu = sajuResult.day === '기유';
       const marker = isGiyu ? '🎯' : '  ';
       
@@ -66,7 +66,7 @@ describe('지역 시차 보정 조사 - 전문 사이트 기준', () => {
 
     // -32분 보정으로 직접 계산
     const adjustedTime32 = adjustTimeForTimezone(birthTime, -32);
-    const sajuResult32 = calculateSaju(birthDate, adjustedTime32, gender, '서울');
+    const sajuResult32 = calculateSaju(birthDate, adjustedTime32, gender);
     const isGiyu32 = sajuResult32.day === '기유';
     
     console.log(`\n🎯 전문 사이트 기준 (-32분 보정): ${sajuResult32.day} ${isGiyu32 ? '(기유!)' : ''}`);
@@ -116,7 +116,7 @@ describe('지역 시차 보정 조사 - 전문 사이트 기준', () => {
     ];
 
     testTimes.forEach(time => {
-      const sajuResult = calculateSaju(birthDate, time, gender, '서울');
+      const sajuResult = calculateSaju(birthDate, time, gender);
       const isGiyu = sajuResult.day === '기유';
       const marker = isGiyu ? '🎯' : '  ';
       
@@ -137,7 +137,7 @@ describe('지역 시차 보정 조사 - 전문 사이트 기준', () => {
     const birthTime = '11:28'; // -32분 보정된 시간
     const gender = '남';
 
-    const sajuResult = calculateSaju(birthDate, birthTime, gender, '서울');
+    const sajuResult = calculateSaju(birthDate, birthTime, gender);
     
     console.log(`1997년 5월 7일 (${birthTime}):`);
     console.log(`  년주: ${sajuResult.year}`);
@@ -186,17 +186,17 @@ describe('지역 시차 보정 조사 - 전문 사이트 기준', () => {
     const gender = '남';
 
     // 현재 알고리즘
-    const currentResult = calculateSaju(birthDate, '12:00', gender, '서울');
+    const currentResult = calculateSaju(birthDate, '12:00', gender);
     console.log(`1. 현재 알고리즘 (12:00): ${currentResult.day}`);
 
     // -30분 보정 (현재)
     const adjustedTime30 = adjustTimeForTimezone('12:00', -30);
-    const result30 = calculateSaju(birthDate, adjustedTime30, gender, '서울');
+    const result30 = calculateSaju(birthDate, adjustedTime30, gender);
     console.log(`2. 현재 보정 (-30분, ${adjustedTime30}): ${result30.day}`);
 
     // -32분 보정 (전문 사이트 기준)
     const adjustedTime32 = adjustTimeForTimezone('12:00', -32);
-    const result32 = calculateSaju(birthDate, adjustedTime32, gender, '서울');
+    const result32 = calculateSaju(birthDate, adjustedTime32, gender);
     console.log(`3. 전문 사이트 기준 (-32분, ${adjustedTime32}): ${result32.day}`);
 
     const isGiyu32 = result32.day === '기유';

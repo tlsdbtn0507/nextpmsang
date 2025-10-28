@@ -261,7 +261,7 @@ describe('기유 역탐지 테스트', () => {
         const dayPillar = getDayPillar(year, month, day);
         
         // 사주 계산기로도 확인
-        const sajuResult = calculateSaju(dateStr, '12:00', '남', '서울');
+        const sajuResult = calculateSaju(dateStr, '12:00', '남');
         
         console.log(`${dateStr}: 직접 계산 = ${dayPillar}, 사주 계산기 = ${sajuResult.day}`);
         

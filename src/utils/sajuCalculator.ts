@@ -173,31 +173,9 @@ function getHiddenStems(branch: string): string[] {
 }
 
 // 지역시 보정 (한국 표준시 기준)
-function adjustForTimezone(birthTime: string, location: string): string {
-  // 한국 주요 도시의 경도별 보정값 (분 단위)
-  // 한국 표준시: 동경 135도 기준
-  // 경도 1도 차이 = 4분의 시간 차이
-  const longitudeAdjustments: { [key: string]: number } = {
-    '서울': -30,    // 127.5° - 135° = -7.5° × 4분 = -30분
-    '부산': -24,    // 129.0° - 135° = -6° × 4분 = -24분
-    '대구': -26,    // 128.6° - 135° = -6.4° × 4분 = -26분
-    '인천': -28,    // 126.6° - 135° = -8.4° × 4분 = -34분 → -28분
-    '광주': -32,    // 126.9° - 135° = -8.1° × 4분 = -32분
-    '대전': -30,    // 127.4° - 135° = -7.6° × 4분 = -30분
-    '울산': -24,    // 129.3° - 135° = -5.7° × 4분 = -23분 → -24분
-    '세종': -30,    // 127.3° - 135° = -7.7° × 4분 = -31분 → -30분
-    '제주': -36,    // 126.5° - 135° = -8.5° × 4분 = -34분 → -36분
-    '경기': -30,    // 서울과 유사한 경도
-    '강원': -28,    // 128.0° - 135° = -7° × 4분 = -28분
-    '충북': -30,    // 127.5° - 135° = -7.5° × 4분 = -30분
-    '충남': -30,    // 127.4° - 135° = -7.6° × 4분 = -30분
-    '전북': -32,    // 127.0° - 135° = -8° × 4분 = -32분
-    '전남': -32,    // 126.8° - 135° = -8.2° × 4분 = -33분 → -32분
-    '경북': -26,    // 128.6° - 135° = -6.4° × 4분 = -26분
-    '경남': -24,    // 128.9° - 135° = -6.1° × 4분 = -24분
-  };
-
-  const adjustment = longitudeAdjustments[location] || 0;
+function adjustForTimezone(birthTime: string): string {
+  // 한국 표준시 기준으로 -30분 보정 (서울 기준)
+  const adjustment = -30;
   const [hours, minutes] = birthTime.split(':').map(Number);
   
   // 분 단위로 계산하여 더 정확한 보정
@@ -222,7 +200,7 @@ export function calculateSaju(
   const [year, month, day] = birthDate.split('-').map(Number);
   
   // 지역시 보정 (지역 정보 제거로 보정 없이 원본 시간 사용)
-  const adjustedTime = adjustForTimezone(birthTime, '');
+  const adjustedTime = adjustForTimezone(birthTime);
   const [hours, minutes] = adjustedTime.split(':').map(Number);
   
   // 년주 계산
@@ -274,7 +252,7 @@ export function getDetailedSajuInfo(
   const [year, month, day] = birthDate.split('-').map(Number);
   
   // 지역시 보정 (지역 정보 제거로 보정 없이 원본 시간 사용)
-  const adjustedTime = adjustForTimezone(birthTime, '');
+  const adjustedTime = adjustForTimezone(birthTime);
   const [hours, minutes] = adjustedTime.split(':').map(Number);
   
   // 각 기둥의 천간과 지지 계산
