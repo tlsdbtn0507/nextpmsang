@@ -339,7 +339,14 @@ export default function PMResultPage({
           <span className="text-white">📚</span>
           문항 테스트
         </button>
-        
+        <button 
+          id="apply-bootcamp-button"
+          onClick={onPMBootcampApply}
+          className="w-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold py-4 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-100 transition-all duration-200"
+        >
+          <span>🚀</span>
+          에듀테크 PM 신청하러 가기
+        </button>
 
       </div>
     </div>

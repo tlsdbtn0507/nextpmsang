@@ -12,15 +12,19 @@ interface FinalResultPageProps {
   sajuData: SajuResponse;
   questionnaireResults: number[];
   onPMBootcampApply: () => void;
+  onOpenChat?: () => void;
+  skipLoading?: boolean;
 }
 
 export default function FinalResultPage({ 
   userInfo, 
   sajuData, 
   questionnaireResults, 
-  onPMBootcampApply 
+  onPMBootcampApply,
+  onOpenChat,
+  skipLoading = false
 }: FinalResultPageProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!skipLoading);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [aiInterpretation, setAiInterpretation] = useState<string>('');
   const [matchedPersonalityType, setMatchedPersonalityType] = useState<string>('');
@@ -28,17 +32,22 @@ export default function FinalResultPage({
   useEffect(() => {
     const generateFinalAnalysis = async () => {
       try {
-        // pmResult 출력
-        const pmResult = sessionStorage.getItem('pmResult');
-        let parsedPmResult = null;
-        if (pmResult) {
-          parsedPmResult = JSON.parse(pmResult);
-          console.log('pmResult:', parsedPmResult);
-        }
+        // 세션 고정값 확인 (있으면 이를 우선 사용)
+        const pmResultRaw = sessionStorage.getItem('pmResult');
+        const parsedPmResult = pmResultRaw ? JSON.parse(pmResultRaw) : null;
         
         // 1단계: 기본 분석 결과 생성
         const result = generateComprehensiveAnalysis(sajuData, questionnaireResults);
         setAnalysisResult(result);
+        
+        // 세션에 최종 매칭값이 있으면 그대로 사용하고 종료
+        const cachedFinal = parsedPmResult?.finalAnalysis;
+        if (cachedFinal?.matchedPersonalityType) {
+          setMatchedPersonalityType(cachedFinal.matchedPersonalityType);
+          if (cachedFinal.aiInterpretation) setAiInterpretation(cachedFinal.aiInterpretation);
+          setIsLoading(false);
+          return;
+        }
         
         // 2단계: AI 유형 매칭
         const pmType = result.primaryPersonality.name;
@@ -79,6 +88,18 @@ export default function FinalResultPage({
           }
           
           setAiInterpretation(interpretation);
+
+          // 세션에 캐시
+          try {
+            const latestRaw = sessionStorage.getItem('pmResult');
+            const latest = latestRaw ? JSON.parse(latestRaw) : {};
+            latest.finalAnalysis = {
+              matchedPersonalityType: personalityMatch ? personalityMatch[0] : '',
+              aiInterpretation: interpretation,
+              computedAt: Date.now(),
+            };
+            sessionStorage.setItem('pmResult', JSON.stringify(latest));
+          } catch {}
         } else {
           setAiInterpretation('');
         }
@@ -93,7 +114,8 @@ export default function FinalResultPage({
   }, [sajuData, questionnaireResults]);
 
   // 로딩 중
-  if (isLoading || !analysisResult) {
+  if (!analysisResult) {
+    if (skipLoading) return null;
     return (
       <LoadingScreen 
         isVisible={true}
@@ -357,7 +379,7 @@ export default function FinalResultPage({
       <div id="bottom-buttons" className="px-4 space-y-3">
         <button 
           id="bootcamp-view-btn"
-          onClick={onPMBootcampApply}
+          onClick={onOpenChat}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold py-4 px-4 rounded-lg hover:scale-[1.02] hover:shadow-lg transition-all duration-200"
         >
           AI 챗봇으로 이동

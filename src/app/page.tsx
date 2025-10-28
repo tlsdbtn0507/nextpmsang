@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import ChatHeader from '@/components/ChatHeader';
 import ChatBubble from '@/components/ChatBubble';
 import InteractiveButtons from '@/components/InteractiveButtons';
@@ -11,49 +12,10 @@ import QuestionnaireTest from '@/components/QuestionnaireTest';
 import FinalResultPage from '@/components/FinalResultPage';
 import LoadingScreen from '@/components/LoadingScreen';
 import { UserInfo } from '@/types/saju';
+import { getFiveElementKorean, getTraitIcon, getHourElement } from '@/utils/sajuHelpers';
 
-// 헬퍼 함수들
-function getFiveElementKorean(element: string): string {
-  const elementMap: { [key: string]: string } = {
-    '목': '나무',
-    '화': '불',
-    '토': '흙',
-    '금': '금',
-    '수': '물'
-  };
-  return elementMap[element] || element;
-}
-
-function getTraitIcon(trait: string): string {
-  const iconMap: { [key: string]: string } = {
-    '안정성': '💜',
-    '신중함': '💬',
-    '책임감': '📚',
-    '균형감각': '⚖️',
-    '관리능력': '💡',
-    '체계적관리': '⚙️',
-    '리더십': '👑',
-    '추진력': '🚀',
-    '협력성': '🤝',
-    '창의성': '🎨',
-    '분석력': '📊',
-    '소통능력': '💬'
-  };
-  return iconMap[trait] || '⭐';
-}
-
-// 각 기둥의 오행 계산
-function getHourElement(hour: string): string {
-  const stem = hour[0];
-  const elementMap: { [key: string]: string } = {
-    '갑': '목', '을': '목',
-    '병': '화', '정': '화',
-    '무': '토', '기': '토',
-    '경': '금', '신': '금',
-    '임': '수', '계': '수'
-  };
-  return elementMap[stem] || '토';
-}
+// ChatPanel은 chat 단계에서만 필요하므로 동적 임포트로 분리해 초기 번들을 줄인다
+const ChatPanel = dynamic(() => import('@/components/ChatPanel'), { ssr: false });
 
 function getMonthElement(month: string): string {
   const stem = month[0];
@@ -81,7 +43,7 @@ function getYearElement(year: string): string {
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading' | 'questionnaire' | 'final'>('welcome');
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading' | 'questionnaire' | 'final' | 'chat'>('welcome');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [questionnaireResults, setQuestionnaireResults] = useState<number[] | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -92,6 +54,7 @@ export default function Home() {
   // 페이지 로드 시 세션스토리지 확인
   useEffect(() => {
     const pmResult = sessionStorage.getItem('pmResult');
+    const savedStep = sessionStorage.getItem('appStep');
     
     if (pmResult) {
       try {
@@ -132,7 +95,12 @@ export default function Home() {
         
         if (parsed.questionnaireResults && isCompleted) {
           setQuestionnaireResults(parsed.questionnaireResults);
-          setCurrentStep('final');
+          // 마지막 저장된 단계가 chat이면 chat부터 보여준다
+          if (savedStep === 'chat') {
+            setCurrentStep('chat');
+          } else {
+            setCurrentStep('final');
+          }
         } 
         // questionnairePhase가 'question'이고 아직 완료되지 않은 경우
         else if (parsed.questionnairePhase === 'question' && !isCompleted) {
@@ -235,6 +203,7 @@ export default function Home() {
   const handleClose = () => {
     // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
+    sessionStorage.removeItem('appStep');
     
     setIsTransitioning(true);
     setTimeout(() => {
@@ -252,6 +221,7 @@ export default function Home() {
   const handleBackToChatbot = () => {
     // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
+    sessionStorage.removeItem('appStep');
     
     setIsTransitioning(true);
     setTimeout(() => {
@@ -268,6 +238,7 @@ export default function Home() {
   const handleDiagnoseAgain = () => {
     // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
+    sessionStorage.removeItem('appStep');
     
     setIsTransitioning(true);
     setTimeout(() => {
@@ -368,9 +339,35 @@ export default function Home() {
     // PM 부트캠프 신청 로직 구현
   };
 
+  // 대화 상태(부모 보존)
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+
+
+  const handleOpenChat = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep('chat');
+      sessionStorage.setItem('appStep', 'chat');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
+  };
+
+  const handleBackToFinal = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep('final');
+      sessionStorage.setItem('appStep', 'final');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className={`w-full max-w-[480px] flex flex-col bg-white shadow-2xl rounded-[32px] overflow-hidden transition-all duration-500 ease-out relative ${
+      <div className={`w-full max-w-[480px] flex flex-col min-h-0 bg-white shadow-2xl rounded-[32px] overflow-hidden transition-all duration-500 ease-out relative ${
         currentStep === 'test' 
           ? 'h-[700px]' 
           : currentStep === 'result'
@@ -379,18 +376,21 @@ export default function Home() {
           ? 'h-[95vh]'
           : currentStep === 'final'
           ? 'h-[95vh]'
+          : currentStep === 'chat'
+          ? 'h-[95vh]'
           : 'h-[95vh]'
       }`}>
         {/* 챗봇 헤더 */}
-        {currentStep !== 'questionnaire' && (
+        {currentStep !== 'questionnaire' && currentStep !== 'chat' && (
           <ChatHeader 
             onClose={currentStep !== 'welcome' ? handleClose : undefined} 
             isTransitioning={isTransitioning}
           />
         )}
         
-        {/* 챗봇 메시지 영역 */}
-        <div ref={messageAreaRef} className="flex-1 overflow-y-auto">
+        {/* 챗봇 메시지 영역 (chat 단계 제외) */}
+        {currentStep !== 'chat' && (
+          <div ref={messageAreaRef} className="flex-1 overflow-y-auto">
           {currentStep === 'welcome' && (
             <div className={`p-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
               <ChatBubble 
@@ -454,10 +454,24 @@ export default function Home() {
                 sajuData={analysisResult}
                 questionnaireResults={questionnaireResults}
                 onPMBootcampApply={handlePMBootcampApply}
+                onOpenChat={handleOpenChat}
+                skipLoading={true}
               />
             </div>
           )}
-        </div>
+          </div>
+        )}
+
+        {/* chat 단계는 독립 레이아웃로 렌더 (입력창 포함) */}
+        {currentStep === 'chat' && (
+          <div className={`flex flex-col flex-1 min-h-0 overflow-hidden transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+            <ChatPanel
+              onClose={handleBackToFinal}
+              messages={chatMessages}
+              onMessagesChange={setChatMessages}
+            />
+          </div>
+        )}
         
         {/* 메시지 입력 - welcome 단계에서만 표시 */}
         {currentStep === 'welcome' && (

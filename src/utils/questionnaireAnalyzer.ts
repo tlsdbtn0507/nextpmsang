@@ -87,15 +87,18 @@ export function calculateCompatibility(
 /**
  * 종합 분석 결과 생성
  */
-export function generateComprehensiveAnalysis(
-  sajuData: any,
-  questionnaireResults: number[]
-): {
+export interface AnalysisResult {
   primaryPersonality: PersonalityMatch;
   allMatches: PersonalityMatch[];
   compatibility: { compatibility: number; description: string };
   recommendation: string;
-} {
+  traits: Array<{ name: string; emoji: string }>;
+}
+
+export function generateComprehensiveAnalysis(
+  sajuData: any,
+  questionnaireResults: number[]
+): AnalysisResult {
   const allMatches = analyzeQuestionnaireResults(questionnaireResults);
   const primaryPersonality = getPrimaryPersonalityType(allMatches);
   
@@ -106,12 +109,56 @@ export function generateComprehensiveAnalysis(
   // 추천 사항 생성
   const recommendation = generateRecommendation(primaryPersonality, sajuElement);
   
+  // 특성 생성
+  const traits = generateTraits(primaryPersonality.type, sajuElement);
+  
   return {
     primaryPersonality,
     allMatches,
     compatibility,
-    recommendation
+    recommendation,
+    traits
   };
+}
+
+/**
+ * 특성 리스트 생성
+ */
+function generateTraits(personalityType: number, sajuElement: string): Array<{ name: string; emoji: string }> {
+  const traitMap: { [key: number]: Array<{ name: string; emoji: string }> } = {
+    0: [
+      { name: '리더십', emoji: '👑' },
+      { name: '추진력', emoji: '🚀' },
+      { name: '전략적 사고', emoji: '🎯' },
+      { name: '관리능력', emoji: '💡' }
+    ],
+    1: [
+      { name: '실행력', emoji: '⚡' },
+      { name: '의사결정', emoji: '🎲' },
+      { name: '적응력', emoji: '🔄' },
+      { name: '위험관리', emoji: '🛡️' }
+    ],
+    2: [
+      { name: '안정성', emoji: '💜' },
+      { name: '체계적관리', emoji: '⚙️' },
+      { name: '책임감', emoji: '📚' },
+      { name: '균형감각', emoji: '⚖️' }
+    ],
+    3: [
+      { name: '분석력', emoji: '📊' },
+      { name: '논리적 사고', emoji: '🔬' },
+      { name: '계획 수립', emoji: '📋' },
+      { name: '품질 관리', emoji: '✅' }
+    ],
+    4: [
+      { name: '소통능력', emoji: '💬' },
+      { name: '공감능력', emoji: '❤️' },
+      { name: '협력성', emoji: '🤝' },
+      { name: '창의성', emoji: '🎨' }
+    ]
+  };
+  
+  return traitMap[personalityType] || traitMap[2];
 }
 
 /**
