@@ -12,6 +12,16 @@ export interface Question {
   options: QuestionOption[];
 }
 
+export interface QuestionnaireAnswer {
+  questionId: number;
+  questionTitle: string;
+  questionText: string;
+  selectedType: number;
+  selectedTypeName: string;
+  selectedEmoji: string;
+  selectedText: string;
+}
+
 export const QUESTIONS: Question[] = [
   {
     id: 1,

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { QUESTIONS, TYPE_NAMES, TYPE_EMOJIS } from '@/types/questionnaireConstants';
+import { useState, useEffect } from 'react';
+import { QUESTIONS, TYPE_NAMES, TYPE_EMOJIS, QuestionnaireAnswer } from '@/types/questionnaireConstants';
 
 interface QuestionnaireTestProps {
-  onComplete: (results: number[]) => void;
+  onComplete: (results: number[], detailedAnswers?: any[]) => void;
   onBack: () => void;
 }
 
@@ -12,30 +12,128 @@ export default function QuestionnaireTest({ onComplete, onBack }: QuestionnaireT
   const [currentPhase, setCurrentPhase] = useState<'intro' | 'question'>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
+  const [detailedAnswers, setDetailedAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
+
+  // 세션스토리지에서 진행 상황 복원 (통합 객체에서)
+  useEffect(() => {
+    const pmResultData = sessionStorage.getItem('pmResult');
+    
+    if (pmResultData) {
+      try {
+        const parsed = JSON.parse(pmResultData);
+        
+        // 통합 객체에서 questionnaire 정보 가져오기
+        const savedAnswers = parsed.questionnaireAnswers;
+        const savedDetailedAnswers = parsed.questionnaireDetailedAnswers;
+        const savedPhase = parsed.questionnairePhase;
+        const savedQuestionIndex = parsed.questionnaireIndex;
+        
+        if (savedAnswers && Array.isArray(savedAnswers) && savedAnswers.length > 0) {
+          setAnswers(savedAnswers);
+          
+          if (savedDetailedAnswers && Array.isArray(savedDetailedAnswers)) {
+            setDetailedAnswers(savedDetailedAnswers);
+          }
+          
+          // 시작하지 않았으면 intro, 시작했으면 question
+          if (savedPhase === 'question') {
+            setCurrentPhase('question');
+            if (savedQuestionIndex !== undefined && savedQuestionIndex !== null) {
+              setCurrentQuestionIndex(savedQuestionIndex);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('세션 복원 실패:', error);
+      }
+    }
+  }, []);
 
   const handleStart = () => {
     setCurrentPhase('question');
+    
+    // 통합 객체에 저장
+    const pmResultData = sessionStorage.getItem('pmResult');
+    if (pmResultData) {
+      const parsed = JSON.parse(pmResultData);
+      parsed.questionnairePhase = 'question';
+      parsed.questionnaireIndex = 0;
+      sessionStorage.setItem('pmResult', JSON.stringify(parsed));
+    }
   };
 
-  const handleAnswer = (type: number) => {
-    const newAnswers = [...answers, type];
+  const handleAnswer = (option: any) => {
+    const currentQuestion = QUESTIONS[currentQuestionIndex];
+    
+    // 상세 답변 정보 생성
+    const detailedAnswer: QuestionnaireAnswer = {
+      questionId: currentQuestion.id,
+      questionTitle: currentQuestion.title,
+      questionText: currentQuestion.question,
+      selectedType: option.type,
+      selectedTypeName: option.name || '',
+      selectedEmoji: option.emoji || '',
+      selectedText: option.text || ''
+    };
+    
+    const newAnswers = [...answers, option.type];
+    const newDetailedAnswers = [...detailedAnswers, detailedAnswer];
+    
     setAnswers(newAnswers);
+    setDetailedAnswers(newDetailedAnswers);
+
+    // 통합 객체에 답변 저장
+    const pmResultData = sessionStorage.getItem('pmResult');
+    if (pmResultData) {
+      const parsed = JSON.parse(pmResultData);
+      parsed.questionnaireAnswers = newAnswers;
+      parsed.questionnaireDetailedAnswers = newDetailedAnswers;
+      
+      if (currentQuestionIndex < QUESTIONS.length - 1) {
+        // 다음 질문으로 이동
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+        parsed.questionnaireIndex = nextIndex;
+      } else {
+        // 테스트 완료
+        parsed.questionnaireIndex = currentQuestionIndex + 1;
+      }
+      
+      sessionStorage.setItem('pmResult', JSON.stringify(parsed));
+    }
 
     if (currentQuestionIndex < QUESTIONS.length - 1) {
       // 다음 질문으로 이동
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
     } else {
-      // 테스트 완료
-      onComplete(newAnswers);
+      // 테스트 완료 - 데이터 유지
+      // 완료 콜백 호출 (타입 번호 배열과 상세 정보 모두 전달)
+      onComplete(newAnswers, newDetailedAnswers);
     }
   };
 
   const handleBack = () => {
     if (currentPhase === 'question' && currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setAnswers(answers.slice(0, -1));
+      const prevIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(prevIndex);
+      const newAnswers = answers.slice(0, -1);
+      const newDetailedAnswers = detailedAnswers.slice(0, -1);
+      setAnswers(newAnswers);
+      setDetailedAnswers(newDetailedAnswers);
+      
+      // 통합 객체에 수정된 답변 저장
+      const pmResultData = sessionStorage.getItem('pmResult');
+      if (pmResultData) {
+        const parsed = JSON.parse(pmResultData);
+        parsed.questionnaireAnswers = newAnswers;
+        parsed.questionnaireDetailedAnswers = newDetailedAnswers;
+        parsed.questionnaireIndex = prevIndex;
+        sessionStorage.setItem('pmResult', JSON.stringify(parsed));
+      }
     } else {
+      // 이전 화면으로 돌아가기
       onBack();
     }
   };
@@ -171,7 +269,7 @@ export default function QuestionnaireTest({ onComplete, onBack }: QuestionnaireT
           {currentQuestion.options.map((option, index) => (
             <button
               key={index}
-              onClick={() => handleAnswer(option.type)}
+              onClick={() => handleAnswer(option)}
               className="w-full bg-white rounded-2xl shadow p-4 text-left hover:shadow-md transition-all"
               style={{ border: '1px solid #E5E5E5' }}
             >

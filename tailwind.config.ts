@@ -25,7 +25,9 @@ const config: Config = {
         },
         'brand-yellow': {
           light: '#FEF9C3',
-        }
+        },
+        'rec-bg': '#EFF6FF',
+        'rec-border': '#BFDBFE',
       },
       fontFamily: {
         'sans': ['Noto Sans KR', 'sans-serif'],

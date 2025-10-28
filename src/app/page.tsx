@@ -8,6 +8,7 @@ import MessageInput from '@/components/MessageInput';
 import PMDiagnosisForm from '@/components/PMDiagnosisForm';
 import PMResultPage from '@/components/PMResultPage';
 import QuestionnaireTest from '@/components/QuestionnaireTest';
+import FinalResultPage from '@/components/FinalResultPage';
 import LoadingScreen from '@/components/LoadingScreen';
 import { UserInfo } from '@/types/saju';
 
@@ -80,7 +81,7 @@ function getYearElement(year: string): string {
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading' | 'questionnaire'>('welcome');
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'test' | 'result' | 'loading' | 'questionnaire' | 'final'>('welcome');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [questionnaireResults, setQuestionnaireResults] = useState<number[] | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -90,13 +91,56 @@ export default function Home() {
 
   // 페이지 로드 시 세션스토리지 확인
   useEffect(() => {
-    const savedResult = sessionStorage.getItem('pmResult');
-    if (savedResult) {
+    const pmResult = sessionStorage.getItem('pmResult');
+    
+    if (pmResult) {
       try {
-        const parsed = JSON.parse(savedResult);
+        const parsed = JSON.parse(pmResult);
+        
+        // 기존 산발적으로 저장된 questionnaire 정보를 pmResult에 통합 (마이그레이션)
+        if (parsed.userInfo && parsed.sajuData) {
+          const questionnairePhase = sessionStorage.getItem('questionnairePhase');
+          const questionnaireAnswers = sessionStorage.getItem('questionnaireAnswers');
+          const questionnaireDetailedAnswers = sessionStorage.getItem('questionnaireDetailedAnswers');
+          const questionnaireIndex = sessionStorage.getItem('questionnaireIndex');
+          
+          // 산발적으로 저장된 데이터가 pmResult에 없으면 통합
+          if (!parsed.questionnaireAnswers && questionnaireAnswers) {
+            parsed.questionnaireAnswers = JSON.parse(questionnaireAnswers);
+          }
+          if (!parsed.questionnaireDetailedAnswers && questionnaireDetailedAnswers) {
+            parsed.questionnaireDetailedAnswers = JSON.parse(questionnaireDetailedAnswers);
+          }
+          if (!parsed.questionnairePhase && questionnairePhase) {
+            parsed.questionnairePhase = questionnairePhase;
+          }
+          if (!parsed.questionnaireIndex && questionnaireIndex) {
+            parsed.questionnaireIndex = parseInt(questionnaireIndex);
+          }
+          
+          // 통합된 데이터를 다시 저장
+          sessionStorage.setItem('pmResult', JSON.stringify(parsed));
+        }
+        
         setUserInfo(parsed.userInfo);
         setAnalysisResult(parsed.sajuData);
-        setCurrentStep('result');
+        
+        // 문항 테스트 완료 여부 확인
+        // questionnaireCompleted가 true이거나 questionnaireResults의 길이가 5를 넘으면 완료된 것으로 간주
+        const isCompleted = parsed.questionnaireCompleted || 
+                           (parsed.questionnaireResults && parsed.questionnaireResults.length > 5);
+        
+        if (parsed.questionnaireResults && isCompleted) {
+          setQuestionnaireResults(parsed.questionnaireResults);
+          setCurrentStep('final');
+        } 
+        // questionnairePhase가 'question'이고 아직 완료되지 않은 경우
+        else if (parsed.questionnairePhase === 'question' && !isCompleted) {
+          setCurrentStep('questionnaire');
+        } 
+        else {
+          setCurrentStep('result');
+        }
       } catch (error) {
         sessionStorage.removeItem('pmResult');
       }
@@ -189,7 +233,7 @@ export default function Home() {
   };
 
   const handleClose = () => {
-    // 세션스토리지 초기화
+    // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
     
     setIsTransitioning(true);
@@ -197,6 +241,7 @@ export default function Home() {
       setCurrentStep('welcome');
       setAnalysisResult(null);
       setUserInfo(null);
+      setQuestionnaireResults(null);
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
@@ -205,7 +250,7 @@ export default function Home() {
 
   // 결과 페이지 관련 핸들러들
   const handleBackToChatbot = () => {
-    // 세션스토리지 초기화
+    // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
     
     setIsTransitioning(true);
@@ -213,6 +258,7 @@ export default function Home() {
       setCurrentStep('welcome');
       setAnalysisResult(null);
       setUserInfo(null);
+      setQuestionnaireResults(null);
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
@@ -220,13 +266,15 @@ export default function Home() {
   };
 
   const handleDiagnoseAgain = () => {
-    // 세션스토리지 초기화
+    // 세션스토리지 초기화 (통합 객체 전체 제거)
     sessionStorage.removeItem('pmResult');
     
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentStep('test');
       setAnalysisResult(null);
+      setUserInfo(null);
+      setQuestionnaireResults(null);
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
@@ -234,9 +282,13 @@ export default function Home() {
   };
 
   const handleQuestionnaireTest = () => {
-    // 세션스토리지에 현재 결과 저장
+    // 세션스토리지에 현재 결과 저장 (통합 객체로 저장)
     if (userInfo && analysisResult) {
+      const existingData = sessionStorage.getItem('pmResult');
+      const baseData = existingData ? JSON.parse(existingData) : {};
+      
       sessionStorage.setItem('pmResult', JSON.stringify({
+        ...baseData,
         userInfo,
         sajuData: analysisResult
       }));
@@ -271,22 +323,31 @@ export default function Home() {
     }
   };
 
-  const handleQuestionnaireComplete = (results: number[]) => {
+  const handleQuestionnaireComplete = (results: number[], detailedAnswers?: any[]) => {
     setQuestionnaireResults(results);
     
-    // 테스트 결과를 세션스토리지에 저장
+    // 테스트 결과를 세션스토리지에 저장 (통합 객체에 추가)
     const pmResultData = sessionStorage.getItem('pmResult');
     if (pmResultData) {
       const parsed = JSON.parse(pmResultData);
+      // 모든 questionnaire 정보를 통합 객체에 저장
       parsed.questionnaireResults = results;
+      parsed.questionnaireDetailedAnswers = detailedAnswers || [];
+      parsed.questionnaireCompleted = true;
+      parsed.questionnairePhase = 'completed';
       sessionStorage.setItem('pmResult', JSON.stringify(parsed));
     }
     
-    // TODO: 종합 결과 페이지로 이동
-    // 지금은 임시로 결과 페이지로 다시 이동
+    // 산발적으로 저장된 데이터 정리 (이제는 pmResult에 통합되었으므로)
+    sessionStorage.removeItem('questionnaireAnswers');
+    sessionStorage.removeItem('questionnaireDetailedAnswers');
+    sessionStorage.removeItem('questionnairePhase');
+    sessionStorage.removeItem('questionnaireIndex');
+    
+    // 종합 결과 페이지로 이동
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentStep('result');
+      setCurrentStep('final');
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);
@@ -315,6 +376,8 @@ export default function Home() {
           : currentStep === 'result'
           ? 'h-[95vh]'
           : currentStep === 'loading'
+          ? 'h-[95vh]'
+          : currentStep === 'final'
           ? 'h-[95vh]'
           : 'h-[95vh]'
       }`}>
@@ -380,6 +443,17 @@ export default function Home() {
               <QuestionnaireTest 
                 onComplete={handleQuestionnaireComplete}
                 onBack={handleQuestionnaireBack}
+              />
+            </div>
+          )}
+          
+          {currentStep === 'final' && analysisResult && userInfo && questionnaireResults && (
+            <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+              <FinalResultPage 
+                userInfo={userInfo}
+                sajuData={analysisResult}
+                questionnaireResults={questionnaireResults}
+                onPMBootcampApply={handlePMBootcampApply}
               />
             </div>
           )}

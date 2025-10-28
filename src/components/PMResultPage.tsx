@@ -104,7 +104,20 @@ export default function PMResultPage({
     return folderMap[element] || 'earth';
   };
 
+  // 오행별 일러스트 이미지 매핑
+  const getElementIllustration = (element: string): string => {
+    const illustrationMap: { [key: string]: string } = {
+      '수': 'water',
+      '금': 'gold',
+      '토': 'earth',
+      '화': 'fire',
+      '목': 'tree'
+    };
+    return illustrationMap[element] || 'earth';
+  };
+
   const imageFolder = getElementImageFolder(getMainElement());
+  const elementIllustration = getElementIllustration(getMainElement());
 
   // 오행별 분석 데이터 반환
   const getElementAnalysis = (element: string) => {
@@ -142,33 +155,12 @@ export default function PMResultPage({
         {/* 일러스트레이션 섹션 */}
         <div id="illustration-section" className="text-center mb-6">
           <div className="relative inline-block">
-            {/* 귀여운 북극곰 일러스트 */}
-            <div className="w-32 h-32 mx-auto relative">
-              {/* 북극곰 몸체 */}
-              <div className="absolute inset-0 bg-white rounded-full border-4 border-gray-300"></div>
-              {/* 귀 */}
-              <div className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full border-2 border-gray-300"></div>
-              <div className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full border-2 border-gray-300"></div>
-              {/* 눈 */}
-              <div className="absolute top-8 left-6 w-2 h-2 bg-black rounded-full"></div>
-              <div className="absolute top-8 right-6 w-2 h-2 bg-black rounded-full"></div>
-              {/* 코 */}
-              <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-black rounded-full"></div>
-              {/* 볼 홍조 */}
-              <div className="absolute top-10 left-4 w-3 h-3 bg-pink-300 rounded-full opacity-70"></div>
-              <div className="absolute top-10 right-4 w-3 h-3 bg-pink-300 rounded-full opacity-70"></div>
-              {/* 웨이브 손 */}
-              <div className="absolute top-16 right-0 w-6 h-6 bg-white rounded-full border-2 border-gray-300 transform rotate-12"></div>
-            </div>
-            
-            {/* 물방울 아이콘들 */}
-            <div className="absolute top-4 left-8 w-4 h-4 bg-blue-200 rounded-full opacity-60"></div>
-            <div className="absolute top-8 right-8 w-3 h-3 bg-blue-200 rounded-full opacity-60"></div>
-            <div className="absolute top-12 left-4 w-2 h-2 bg-blue-200 rounded-full opacity-60"></div>
-            <div className="absolute top-16 right-4 w-3 h-3 bg-blue-200 rounded-full opacity-60"></div>
-            
-            {/* 배경 그라데이션 */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-pink-100 rounded-full opacity-30 -z-10"></div>
+            {/* 오행 일러스트 */}
+            <img 
+              src={`/images/saju/${elementIllustration}.png`} 
+              alt={`${getMainElement()} 오행 일러스트`}
+              className="h-[300px] w-auto mx-auto object-contain"
+            />
           </div>
         </div>
 
