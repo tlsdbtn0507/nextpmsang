@@ -108,10 +108,9 @@ function getDayPillar(year: number, month: number, day: number): string {
   const timeDiff = targetDate.getTime() - baseDate.getTime();
   const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
   
-  // 일간과 일지 계산
-  // 경자일 기준 조정: 1900-01-26 기준으로 시작
-  const dayStemIndex = (daysDiff + 6) % 10; 
-  const dayBranchIndex = (daysDiff + 0) % 12;
+  // 일간/일지 오프셋 재보정: 1997-05-07 -> 기(5)유(9)
+  const dayStemIndex = (daysDiff + 5) % 10; 
+  const dayBranchIndex = (daysDiff + 11) % 12; // -1과 동일
   
   return TEN_STEMS[dayStemIndex] + TWELVE_BRANCHES[dayBranchIndex];
 }
