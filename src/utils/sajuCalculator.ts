@@ -100,10 +100,9 @@ function getMonthPillar(year: number, month: number, day: number): string {
 
 // 일주 계산 (1900년 1월 26일을 기준으로 조정)
 function getDayPillar(year: number, month: number, day: number): string {
-  // 1900년 1월 26일을 기준으로 일진 계산
-  // (기존 1900-01-31 기준에서 5일 앞당김)
-  const baseDate = new Date(1900, 0, 26);
-  const targetDate = new Date(year, month - 1, day);
+  // 1900년 1월 26일을 기준으로 일진 계산 (UTC 기준으로 고정하여 환경별 TZ 차이 제거)
+  const baseDate = new Date(Date.UTC(1900, 0, 26));
+  const targetDate = new Date(Date.UTC(year, month - 1, day));
   
   // 일수 차이 계산
   const timeDiff = targetDate.getTime() - baseDate.getTime();

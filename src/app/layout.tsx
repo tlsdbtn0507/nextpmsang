@@ -17,7 +17,12 @@ export const metadata: Metadata = {
   description: "생년월일시를 입력하면 만세력 기반으로 오행을 계산하여 당신의 PM 성향을 분석해드립니다.",
   keywords: ["사주", "PM", "성향분석", "오행", "만세력", "프로젝트매니저"],
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo.png", type: "image/png" },
+    ],
   },
 };
 
