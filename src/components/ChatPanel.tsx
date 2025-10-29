@@ -104,13 +104,12 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     return data?.content || '죄송해요, 잠시 후 다시 시도해주세요.';
   }
 
+  const sendOverToChatter = () => {
+    // 상담사 연결 기능 (추후 구현)
+  };
+
   const handleMessage = async () => {
     const text = input.trim();
-
-    if (!handleChatLimit()) {
-      alert('채팅 횟수를 초과했습니다.');
-      return;
-    }
 
     if (!checkIsInputValid(text)) {
       return;
@@ -121,6 +120,19 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     const next = [...messages, userMessage];
     setMessages(next);
     setInput('');
+
+    // 채팅 횟수 체크 - 제한된 경우 API 호출하지 않음
+    if (!handleChatLimit()) {
+      // 채팅 횟수 초과 시 메시지 버블로 안내
+      const limitMessage = {
+        role: 'assistant' as const,
+        content: '사용가능한 채팅 횟수를 초과 하셨습니다. \'추가 안내를 원하신다면 아래에 상담사 연결 버튼을 클릭해주세요\''
+      };
+      setMessages((prev) => [...prev, limitMessage]);
+      setTimeout(scrollToBottomElement, 100);
+      return;
+    }
+
     setIsSending(true);
     
     try {
@@ -352,23 +364,37 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 				</>
 			  ) : (
 				/* 일반 채팅 메시지 */
-				<div
-				  className={
-					m.role === 'user'
-					  ? 'ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words'
-					  : 'mr-auto w-fit max-w-[85%] bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-800 rounded-2xl px-4 py-2 break-words'
-				  }
-				  style={m.role === 'user' ? { backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF', color: 'black' } : {}}
-				>
-				  {m.role === 'user' ? (
-					<span className="text-sm whitespace-pre-wrap">{m.content}</span>
-				  ) : (
-					<div 
-					  className="text-sm prose prose-sm max-w-none"
-					  dangerouslySetInnerHTML={{ __html: markdownToHtml(m.content) }}
-					/>
+				<>
+				  <div
+					className={
+					  m.role === 'user'
+						? 'ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words'
+						: 'mr-auto w-fit max-w-[85%] bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-800 rounded-2xl px-4 py-2 break-words'
+					}
+					style={m.role === 'user' ? { backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF', color: 'black' } : {}}
+				  >
+					{m.role === 'user' ? (
+					  <span className="text-sm whitespace-pre-wrap">{m.content}</span>
+					) : (
+					  <div 
+						className="text-sm prose prose-sm max-w-none"
+						dangerouslySetInnerHTML={{ __html: markdownToHtml(m.content) }}
+					  />
+					)}
+				  </div>
+				  
+				  {/* 채팅 횟수 초과 메시지인 경우 상담사 연결 버튼 추가 */}
+				  {m.role === 'assistant' && m.content.includes('사용가능한 채팅 횟수를 초과') && (
+					<div className="mt-2">
+					  <button
+						onClick={sendOverToChatter}
+						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95 transition-all duration-300 hover:scale-105"
+					  >
+						상담사 연결
+					  </button>
+					</div>
 				  )}
-				</div>
+				</>
 			  )}
 			</React.Fragment>
 		  ))}
