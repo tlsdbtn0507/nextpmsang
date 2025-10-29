@@ -340,7 +340,7 @@ export default function Home() {
   };
 
   // 대화 상태(부모 보존)
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant' | 'faq' | 'followup'; content: string; label?: string; answer?: string; availableQuestions?: string[] }[]>([]);
 
 
   const handleOpenChat = () => {

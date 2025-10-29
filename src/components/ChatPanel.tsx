@@ -7,24 +7,30 @@ import { FAQ_QUESTIONS, FAQ_ANSWERS } from '@/utils/chatFaq';
 
 interface ChatPanelProps {
   onClose?: () => void;
-  messages?: { role: 'user' | 'assistant'; content: string }[];
-  onMessagesChange?: (next: { role: 'user' | 'assistant'; content: string }[]) => void;
+  messages?: { role: 'user' | 'assistant' | 'faq' | 'followup'; content: string; label?: string; answer?: string; availableQuestions?: string[] }[];
+  onMessagesChange?: (next: { role: 'user' | 'assistant' | 'faq' | 'followup'; content: string; label?: string; answer?: string; availableQuestions?: string[] }[]) => void;
 }
 
 export default function ChatPanel({ onClose, messages: externalMessages, onMessagesChange }: ChatPanelProps) {
   const handleClose = () => {
     if (onClose) onClose();
   };
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>(externalMessages || []);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant' | 'faq' | 'followup'; content: string; label?: string; answer?: string; availableQuestions?: string[] }[]>(externalMessages || []);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [chatLimit, setChatLimit] = useState<null | number>(null);
-  const [faqBubbles, setFaqBubbles] = useState<{ label: string; answer: string }[]>([]);
+  const [usedFaqQuestions, setUsedFaqQuestions] = useState<string[]>([]);
+  const [isFaqLoading, setIsFaqLoading] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottomElement = () => {
-    scrollToBottom(bodyRef.current);
+    if (bodyRef.current) {
+      bodyRef.current.scrollTo({
+        top: bodyRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     return true;
   }
 
-  const fetchChat = async (messages: { role: 'user' | 'assistant'; content: string }[]) => {
+  const fetchChat = async (messages: { role: 'user' | 'assistant' | 'faq' | 'followup'; content: string; label?: string; answer?: string; availableQuestions?: string[] }[]) => {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -110,14 +116,16 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
       return;
     }
 
-    const next = [...messages, { role: 'user' as const, content: text }];
-
+    // 사용자 메시지를 화면에 즉시 추가
+    const userMessage = { role: 'user' as const, content: text };
+    const next = [...messages, userMessage];
     setMessages(next);
     setInput('');
     setIsSending(true);
     
     try {
-      const reply = await fetchChat(next);
+      // API에는 입력값만 전송 (기존 대화 내역 제외)
+      const reply = await fetchChat([userMessage]);
       setMessages((prev) => [...prev, { role: 'assistant' as const, content: reply }]);
       setTimeout(scrollToBottomElement, 100);
     } catch (e) {
@@ -131,21 +139,78 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     const answer = FAQ_ANSWERS[label];
     if (answer) {
       console.log(`[FAQ] ${label}:`, answer);
-      // generateFaqBubbles(answer, label); // 화면 렌더링은 추후 활성화
+      generateFaqBubbles(answer, label);
+      // 사용한 FAQ 질문 추가
+      setUsedFaqQuestions((prev) => [...prev, label]);
     } else {
       console.log(`[FAQ] ${label}: 답변이 없습니다.`);
     }
   };
 
-  // FAQ 말풍선 생성: 사용자 말풍선(오른쪽) + 답변 블록
-  const generateFaqBubbles = (answer: string, label: string) => {
-    setFaqBubbles((prev) => [...prev, { label, answer }]);
-    // 스크롤 약간 지연 후 하단으로
+  // FAQ 말풍선 생성: 단계별 딜레이와 로딩 애니메이션
+  const generateFaqBubbles = async (answer: string, label: string) => {
+    // 1단계: 질문 말풍선 즉시 표시
+    const questionMessage = { role: 'faq' as const, content: '', label, answer: '' };
+    setMessages((prev) => [...prev, questionMessage]);
+    setIsFaqLoading(true);
+    
+    // 2단계: 1000ms 후 답변 표시
+    setTimeout(() => {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const lastIndex = updated.length - 1;
+        if (updated[lastIndex] && updated[lastIndex].role === 'faq') {
+          updated[lastIndex] = { ...updated[lastIndex], answer };
+        }
+        return updated;
+      });
+      setIsFaqLoading(false);
+      
+      // 답변 표시 후 스크롤 실행
+      setTimeout(scrollToBottomElement, 100);
+      
+      // 3단계: 1000ms 후 추가 안내를 messages에 영구 추가
+      setTimeout(() => {
+        const availableQuestions = getAvailableFaqQuestions();
+        if (availableQuestions.length > 0) {
+          const followupMessage = {
+            role: 'followup' as const,
+            content: '추가로 궁금하신 사항이 있나요?',
+            availableQuestions
+          };
+          setMessages((prev) => [...prev, followupMessage]);
+        }
+        setTimeout(scrollToBottomElement, 200);
+      }, 1000);
+    }, 1000);
+    
     setTimeout(scrollToBottomElement, 50);
   };
 
+  // 사용하지 않은 FAQ 질문들만 필터링
+  const getAvailableFaqQuestions = () => {
+    return FAQ_QUESTIONS.filter(question => !usedFaqQuestions.includes(question));
+  };
+
   return (
-    <div id="chat-panel" className="flex flex-col min-h-full">
+    <>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .smooth-scroll {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+      <div id="chat-panel" className="flex flex-col min-h-full">
       {/* 헤더 (세션 삭제 없이 onClose만 호출) */}
       <div id="chat-header" className="sticky top-0 z-10 px-4 py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white">
         <div id="chat-header-inner" className="flex items-center gap-3">
@@ -170,7 +235,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
       <div
         id="chat-body"
         ref={bodyRef}
-        className="flex-1 min-h-0 p-4 space-y-3 overflow-y-auto"
+        className="flex-1 min-h-0 p-4 space-y-3 overflow-y-auto smooth-scroll"
       >
         {/* 안내 메시지 버블 */}
         <div id="chat-guide-bubble" className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
@@ -226,42 +291,87 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 		{/* 대화 내용 (추천 칩들 아래) */}
 		<div id="chat-messages" className="space-y-2">
 		  {messages.map((m, idx) => (
-			<div
-			  key={`msg-${idx}`}
-			  className={
-				m.role === 'user'
-				  ? 'ml-auto w-fit max-w-[80%] bg-gradient-to-r from-fuchsia-600 to-pink-500 text-white rounded-2xl px-4 py-2 break-words'
-				  : 'mr-auto w-fit max-w-[85%] bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-800 rounded-2xl px-4 py-2 break-words'
-			  }
-			>
-			  {m.role === 'user' ? (
-				<span className="text-sm whitespace-pre-wrap">{m.content}</span>
+			<React.Fragment key={`msg-${idx}`}>
+			  {m.role === 'faq' ? (
+				/* FAQ 메시지 */
+				<>
+				  <div
+					className="ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words"
+					style={{ backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF' ,color: 'black' }}
+				  >
+					<span className="text-sm whitespace-pre-wrap">{m.label}</span>
+				  </div>
+				  
+				  {/* 답변 블록 */}
+				  {m.answer ? (
+					<div className="mr-auto w-fit max-w-[85%] rounded-2xl px-4 py-2 break-words border border-gray-200 bg-white">
+					  <div className="text-sm prose prose-sm max-w-none" style={{color: 'black'}}>
+						{m.answer}
+					  </div>
+					</div>
+				  ) : (
+					/* 로딩 애니메이션 */
+					<div className="mr-auto w-fit max-w-[85%] rounded-2xl px-4 py-2 break-words border border-gray-200 bg-white">
+					  <div className="flex items-center gap-2">
+						<div className="flex space-x-1">
+						  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+						  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+						  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+						</div>
+						<span className="text-sm text-gray-500">답변 생성 중...</span>
+					  </div>
+					</div>
+				  )}
+				</>
+			  ) : m.role === 'followup' ? (
+				/* 추가 질문 안내 메시지 */
+				<>
+				  <div className="mr-auto w-fit max-w-[85%] rounded-2xl px-4 py-2 break-words border border-gray-200 bg-white">
+					<div className="text-sm text-gray-800">
+					  {m.content}
+					</div>
+				  </div>
+				  <div 
+					className="space-y-2 transition-all duration-700 ease-out"
+					style={{display:'flex', flexDirection: 'column'}}
+				  >
+					{m.availableQuestions?.map((label, faqIdx) => (
+					  <button
+						key={`followup-faq-${faqIdx}`}
+						onClick={() => handleFaqBtns(label)}
+						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95 transition-all duration-300 hover:scale-105"
+						style={{
+							animationDelay: `${faqIdx * 100}ms`,
+							animation: 'fadeInUp 0.6s ease-out forwards'
+						}}
+					  >
+						{label}
+					  </button>
+					))}
+				  </div>
+				</>
 			  ) : (
-				<div 
-				  className="text-sm prose prose-sm max-w-none"
-				  dangerouslySetInnerHTML={{ __html: markdownToHtml(m.content) }}
-				/>
-			  )}
-			</div>
-		  ))}
-
-		  {/* FAQ로 생성된 말풍선들 (커밋 전 일시 비활성화)
-		  {faqBubbles.map((b, idx) => (
-			<React.Fragment key={`faq-${idx}`}>
-			  <div
-				className="ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words"
-				style={{ backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF' ,color: 'black' }}
-			  >
-				<span className="text-sm whitespace-pre-wrap">{b.label}</span>
-			  </div>
-			  <div className="mr-auto w-fit max-w-[85%] rounded-2xl px-4 py-2 break-words border border-gray-200 bg-white">
-				<div className="text-sm prose prose-sm max-w-none" style={{color: 'black'}}>
-				  {b.answer}
+				/* 일반 채팅 메시지 */
+				<div
+				  className={
+					m.role === 'user'
+					  ? 'ml-auto w-fit max-w-[80%] rounded-2xl px-4 py-2 break-words'
+					  : 'mr-auto w-fit max-w-[85%] bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-800 rounded-2xl px-4 py-2 break-words'
+				  }
+				  style={m.role === 'user' ? { backgroundColor: '#EEE9FF', border: '1px solid #D5CFFF', color: 'black' } : {}}
+				>
+				  {m.role === 'user' ? (
+					<span className="text-sm whitespace-pre-wrap">{m.content}</span>
+				  ) : (
+					<div 
+					  className="text-sm prose prose-sm max-w-none"
+					  dangerouslySetInnerHTML={{ __html: markdownToHtml(m.content) }}
+					/>
+				  )}
 				</div>
-			  </div>
+			  )}
 			</React.Fragment>
 		  ))}
-		  */}
 		  
 		  {/* 로딩 애니메이션 */}
 		  {isSending && (
@@ -319,6 +429,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
         </div>
       </div>
     </div>
+    </>
   );
 }
 
