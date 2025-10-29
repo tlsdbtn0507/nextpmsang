@@ -293,7 +293,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
               id={`chat-chip-${idx+1}`}
               key={`chip-${idx}`}
               onClick={() => handleFaqBtns(label)}
-              className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95"
+              className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:bg-fuchsia-700 transition-colors duration-200"
             >
               {label}
             </button>
@@ -351,7 +351,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 					  <button
 						key={`followup-faq-${faqIdx}`}
 						onClick={() => handleFaqBtns(label)}
-						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95 transition-all duration-300 hover:scale-105"
+						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:bg-fuchsia-700 transition-colors duration-200"
 						style={{
 							animationDelay: `${faqIdx * 100}ms`,
 							animation: 'fadeInUp 0.6s ease-out forwards'
@@ -388,7 +388,7 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
 					<div className="mt-2">
 					  <button
 						onClick={sendOverToChatter}
-						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:brightness-95 transition-all duration-300 hover:scale-105"
+						className="w-fit max-w-full text-left bg-fuchsia-600 text-white text-sm font-semibold py-2 px-4 rounded-full hover:bg-fuchsia-700 transition-colors duration-200"
 					  >
 						상담사 연결
 					  </button>
