@@ -183,7 +183,10 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
       
       // 3단계: 1000ms 후 추가 안내를 messages에 영구 추가
       setTimeout(() => {
-        const availableQuestions = getAvailableFaqQuestions();
+        // 현재 사용된 질문들을 포함한 최신 상태로 필터링
+        const currentUsedQuestions = [...usedFaqQuestions, label];
+        const availableQuestions = FAQ_QUESTIONS.filter(question => !currentUsedQuestions.includes(question));
+        
         if (availableQuestions.length > 0) {
           const followupMessage = {
             role: 'followup' as const,

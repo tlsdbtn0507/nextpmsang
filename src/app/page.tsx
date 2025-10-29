@@ -379,7 +379,7 @@ export default function Home() {
           : currentStep === 'chat'
           ? 'h-[95vh]'
           : currentStep === 'questionnaire'
-          ? 'h-[75vh]'
+          ? 'h-[95vh]'
           : 'h-[95vh]'
       }`}>
         {/* 챗봇 헤더 */}
