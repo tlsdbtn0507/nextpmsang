@@ -286,14 +286,18 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
         <div id="chat-cta-buttons" className="flex items-center gap-3">
           <a
             id="chat-apply-btn"
-            href="#"
+            href="https://www.genia.academy/apply/pm"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex-1 text-center bg-purple-600 text-white text-sm font-semibold py-2 px-3 rounded-full hover:opacity-95"
           >
             에듀테크 PM신청하러 가기
           </a>
           <a
             id="chat-bootcamp-link"
-            href="#"
+            href="https://www.genia.academy/pm"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-xs text-purple-700 bg-purple-50 border border-purple-200 font-semibold py-2 px-3 rounded-full hover:bg-purple-100"
           >
             부트캠프 페이지로 이동

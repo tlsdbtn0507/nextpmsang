@@ -74,10 +74,10 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="text-purple-500 text-xl">✨</div>
-          <h2 className="text-2xl font-bold text-gray-800">PM 사주 진단</h2>
+          <h2 className="text-2xl font-bold text-gray-800">사주 진단</h2>
         </div>
         <p className="text-gray-600 text-sm mb-4">
-          생년월일과 태어난 시간을 입력하여 당신의 PM 적성을 확인하세요
+          생년월일과 태어난 시간을 입력하여 당신의 사주를 확인하세요
         </p>
         <div className="w-full h-px bg-purple-200"></div>
       </div>
@@ -203,7 +203,7 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg transition-all duration-200"
           >
             <span>✨</span>
-            사주·PM 리포트 생성
+            사주 리포트 생성
           </button>
         </div>
       </form>

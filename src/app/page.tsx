@@ -387,6 +387,7 @@ export default function Home() {
           <ChatHeader 
             onClose={currentStep !== 'welcome' ? handleClose : undefined} 
             isTransitioning={isTransitioning}
+            currentStep={currentStep}
           />
         )}
         
