@@ -165,6 +165,9 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
               max="12"
               className="w-1/4 px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
             />
+            <span className="py-2 text-gray-500 flex items-center justify-center text-sm">
+              시
+            </span>
             {/* 분 입력 */}
             <input
               type="number"
@@ -181,8 +184,8 @@ export default function PMDiagnosisForm({ onSubmit, onPreview, isLoading = false
               max="59"
               className="w-1/4 px-3 py-2 bg-pink-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 text-black"
             />
-            <span className="w-1/4 px-3 py-2 text-gray-500 flex items-center justify-center text-sm">
-              시
+            <span className="py-2 text-gray-500 flex items-center justify-center text-sm">
+              분
             </span>
           </div>
         </div>

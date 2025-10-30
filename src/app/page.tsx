@@ -483,6 +483,7 @@ export default function Home() {
           <MessageInput 
             onSendMessage={handleSendMessage}
             disabled={isLoading}
+            tooltipMessage={"사주 검사를 완료하면 채팅이 가능합니다!"}
           />
         )}
       </div>

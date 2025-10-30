@@ -168,7 +168,7 @@ export default function QuestionnaireTest({ onComplete, onBack }: QuestionnaireT
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6" >
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-bold text-gray-800">
-                🌟 사주 오행 기반
+                🌟 사주 오행 기반 🌟
                 <br />
                 후천적 기질형 PM 테스트
               </h2>
@@ -198,9 +198,9 @@ export default function QuestionnaireTest({ onComplete, onBack }: QuestionnaireT
               </div>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-base">
                 <div className="flex flex-col items-center space-y-1 text-gray-700">
-                  <p className="text-base"><strong>⚙️</strong> 사주로 본 선천적 기질</p>
+                  <p className="text-base"><strong>⚙️</strong> 사주로 본 선천적 기질 <strong>⚙️</strong></p>
                   <span className="text-2xl">+</span>
-                  <p className="text-base"><strong>💡</strong> 후천적으로 만들어진 일하는 방식</p>
+                  <p className="text-base"><strong>💡</strong> 후천적으로 만들어진 일하는 방식 <strong>💡</strong></p>
                   <span className="text-2xl transform rotate-90">=</span>
                   <p className="font-bold text-purple-600 text-base mt-1">
                     당신만의 PM 스타일을 찾아드립니다.</p>

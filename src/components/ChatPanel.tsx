@@ -69,24 +69,21 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     }
   }, [messages.length]);
 
-  const handleChatLimit = () => {
-    if (chatLimit === null || chatLimit <= 0){
-        localStorage.setItem('chatLimit', '0');
-        setChatLimit(0);
-        return false;
-    } 
-    setChatLimit((prev) => prev ? prev - 1 : 0);
-    localStorage.setItem('chatLimit', chatLimit.toString());
-    return true;
+  const handleChatLimit = (): { allowed: boolean; remaining: number } => {
+    const current = typeof chatLimit === 'number' ? chatLimit : 0;
+    if (current <= 0) {
+      localStorage.setItem('chatLimit', '0');
+      setChatLimit(0);
+      return { allowed: false, remaining: 0 };
+    }
+    const nextRemaining = current - 1;
+    setChatLimit(nextRemaining);
+    localStorage.setItem('chatLimit', String(nextRemaining));
+    return { allowed: true, remaining: nextRemaining };
   };
 
   const checkIsInputValid = (text: string) => {
-    
-    if (!text || isSending) return;
-    if (containsProfanity(text)) {
-      alert('부적절한 표현이 포함되어 있어 전송할 수 없습니다.');
-      return false;
-    }
+    if (!text || isSending) return false;
     if (!validateMessageLength(text)) {
       alert('글자수 제한을 지켜주세요!');
       return false;
@@ -111,7 +108,28 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
   const handleMessage = async () => {
     const text = input.trim();
 
-    if (!checkIsInputValid(text)) {
+    if (!text || isSending) return;
+    
+    // 욕설 감지 시 특별 처리
+    if (containsProfanity(text)) {
+      // 사용자 메시지는 표시하되, AI 답변 대신 욕설 안내 메시지 표시
+      const userMessage = { role: 'user' as const, content: text };
+      setMessages((prev) => [...prev, userMessage]);
+      setInput('');
+      
+      // 욕설 안내 메시지 추가
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { 
+          role: 'assistant' as const, 
+          content: '저한테 욕을 하지 말아주세요. 에듀테크 PM이나 천재교육 PM 부트캠프에 대한 질문으로 해주실 수 있을까요?' 
+        }]);
+        setTimeout(scrollToBottomElement, 100);
+      }, 300);
+      return;
+    }
+
+    if (!validateMessageLength(text)) {
+      alert('글자수 제한을 지켜주세요!');
       return;
     }
 
@@ -122,7 +140,8 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     setInput('');
 
     // 채팅 횟수 체크 - 제한된 경우 API 호출하지 않음
-    if (!handleChatLimit()) {
+    const limitCheck = handleChatLimit();
+    if (!limitCheck.allowed) {
       // 채팅 횟수 초과 시 메시지 버블로 안내
       const limitMessage = {
         role: 'assistant' as const,
@@ -138,7 +157,12 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     try {
       // API에는 입력값만 전송 (기존 대화 내역 제외)
       const reply = await fetchChat([userMessage]);
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: reply }]);
+      // AI 답변과 남은 횟수 안내를 연달아 표시
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant' as const, content: reply },
+        { role: 'assistant' as const, content: `남은 채팅 횟수: ${limitCheck.remaining}회` }
+      ]);
       setTimeout(scrollToBottomElement, 100);
     } catch (e) {
       setMessages((prev) => [...prev, { role: 'assistant' as const, content: '오류가 발생했어요. 잠시 후 다시 시도해주세요.' }]);
@@ -200,11 +224,6 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
     }, 1000);
     
     setTimeout(scrollToBottomElement, 50);
-  };
-
-  // 사용하지 않은 FAQ 질문들만 필터링
-  const getAvailableFaqQuestions = () => {
-    return FAQ_QUESTIONS.filter(question => !usedFaqQuestions.includes(question));
   };
 
   return (
@@ -285,7 +304,9 @@ export default function ChatPanel({ onClose, messages: externalMessages, onMessa
         <div id="chat-moreq-bubble" className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <p id="chat-moreq-text" className="text-sm text-gray-800 leading-6">
             혹시 더 궁금하신게 있으시면 채팅을 통해<br/>
-            저랑 더 대화해 보시겠어요?
+            저랑 더 대화해 보시겠어요?<br/>
+            채팅은 최대 2회까지 가능해요 <br/>
+            {chatLimit}회 남았어요
           </p>
         </div>
 
