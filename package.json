@@ -12,6 +12,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "mermaid": "^11.12.1",
     "next": "16.0.0",
     "openai": "^6.6.0",
     "react": "19.2.0",
