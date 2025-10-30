@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { containsProfanity, scrollToBottom, validateMessageLength } from '@/utils/chatHelpers';
+import { containsProfanity, validateMessageLength } from '@/utils/chatHelpers';
 import { markdownToHtml } from '@/utils/markdownParser';
 import { FAQ_QUESTIONS, FAQ_ANSWERS } from '@/utils/chatFaq';
 

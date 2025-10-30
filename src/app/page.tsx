@@ -7,12 +7,12 @@ import ChatBubble from '@/components/ChatBubble';
 import InteractiveButtons from '@/components/InteractiveButtons';
 import MessageInput from '@/components/MessageInput';
 import PMDiagnosisForm from '@/components/PMDiagnosisForm';
-import PMResultPage from '@/components/PMResultPage';
+import SajuResultPage from '@/components/SajuResultPage';
 import QuestionnaireTest from '@/components/QuestionnaireTest';
 import FinalResultPage from '@/components/FinalResultPage';
 import LoadingScreen from '@/components/LoadingScreen';
 import { UserInfo } from '@/types/saju';
-import { getFiveElementKorean, getTraitIcon, getHourElement } from '@/utils/sajuHelpers';
+// import 제거: 현재 파일에서 미사용
 
 // ChatPanel은 chat 단계에서만 필요하므로 동적 임포트로 분리해 초기 번들을 줄인다
 const ChatPanel = dynamic(() => import('@/components/ChatPanel'), { ssr: false });
@@ -433,7 +433,7 @@ export default function Home() {
           
           {currentStep === 'result' && analysisResult && userInfo && (
             <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-              <PMResultPage 
+              <SajuResultPage 
                 userInfo={userInfo}
                 sajuData={analysisResult}
                 onBackToChatbot={handleBackToChatbot}
